@@ -1,11 +1,23 @@
 import Link from "next/link";
 import React from "react";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const SiteHeader = () => {
+  // TODO: 실제 인증 상태에 따라 메뉴 분기 처리가 필요함
+  const isLoggedIn = false;
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
       <div className="container flex h-14 items-center justify-between px-4">
-        {/* 로고 영역 */}
+        {/* 1. 로고 영역 */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
@@ -14,23 +26,84 @@ const SiteHeader = () => {
           </Link>
         </div>
 
-        {/* 네비게이션 영역 */}
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/guest-login"
-            className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
-          >
-            로그인
-          </Link>
-          <Link
-            href="/guest-check"
-            className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
-          >
-            비회원 주문 조회
-          </Link>
-          {/* 회원일 경우 보여질 마이페이지 링크 (임시 주석 처리) */}
-          {/* <Link href="/my-page" className="...">마이페이지</Link> */}
+        {/* 2. 데스크탑 네비게이션 (md 이상에서만 노출) */}
+        <nav className="hidden md:flex items-center gap-6">
+          {!isLoggedIn && (
+            <>
+              <Link
+                href="/guest-login"
+                className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
+              >
+                로그인
+              </Link>
+              <Link
+                href="/guest-check"
+                className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
+              >
+                비회원 주문 조회
+              </Link>
+            </>
+          )}
+          {isLoggedIn && (
+            <Link
+              href="/my-page"
+              className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
+            >
+              마이페이지
+            </Link>
+          )}
         </nav>
+
+        {/* 3. 모바일 네비게이션 (md 미만에서만 노출) */}
+        <div className="flex md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="-mr-2">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle className="text-left bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+                  AI Dream Teller
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col space-y-4 mt-8">
+                <Link
+                  href="/"
+                  className="text-sm font-medium hover:text-purple-600"
+                >
+                  홈
+                </Link>
+                {!isLoggedIn && (
+                  <>
+                    <Link
+                      href="/guest-login"
+                      className="text-sm font-medium hover:text-purple-600"
+                    >
+                      로그인
+                    </Link>
+                    <Link
+                      href="/guest-check"
+                      className="text-sm font-medium hover:text-purple-600"
+                    >
+                      비회원 주문 조회
+                    </Link>
+                  </>
+                )}
+                {isLoggedIn && (
+                  <Link
+                    href="/my-page"
+                    className="text-sm font-medium hover:text-purple-600"
+                  >
+                    마이페이지
+                  </Link>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   );
