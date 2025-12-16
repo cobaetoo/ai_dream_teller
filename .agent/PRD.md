@@ -1,16 +1,19 @@
 # Product Requirements Document (PRD)
 
 ## 1. 프로젝트 개요 (Project Overview)
+
 - **프로젝트명**: AI Dream Teller (AI 꿈 해몽 서비스)
 - **목표**: 사용자가 입력한 꿈 내용을 AI가 분석하여 심층적인 해몽과 조언을 제공하는 수익형 웹 서비스.
 - **핵심 가치 1**: 신비롭고 직관적인 UI 경험과 정확도 높은 AI 분석을 통해 사용자에게 인사이트와 재미 제공.
 - **핵심 가치 2**: 프로이트, 칼 융, 신경과학, 게슈탈트 등 해몽을 맡기고 싶은 전문 분야 선택하여 해몽 요청 가능.
 
 ## 2. 타겟 유저 (Target Audience)
+
 - 꿈의 의미를 검색해보는 습관이 있는 20~40대 남녀.
 - 모바일 환경에서 간편하게 결과를 확인하고 공유하고 싶어하는 유저.
 
 ## 3. 기술 스택 (Tech Stack)
+
 - **Framework**: Next.js 16.0.10 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS, Shadcn/UI
@@ -19,6 +22,7 @@
 - **AI**: Gemini 3 with gemini sdk
 
 ## 4. 디자인 가이드 (Design Guidelines)
+
 - **Theme**: Mystical, Vibrant, Fluid.
 - **Colors**: Deep Purple, Neon Blue, Soft Pink (Aurora Gradients).
 - **Interactions**: 부드러운 스크롤, 호버 시 빛나는 효과, 로딩 시 몽환적인 애니메이션.
@@ -26,6 +30,7 @@
 ## 5. UX Flow & Layout (User Side)
 
 ### 5.1. Global Layout (Common Structure)
+
 1. **상단 네비게이션 바**
    - **(공통)**: 홈 로고.
    - **(비회원)**: `로그인`, `비회원 주문 조회`.
@@ -35,6 +40,7 @@
 4. **Head & Meta**: SEO, Open Graph, GA4 등 Analytics 설정.
 
 ### 5.2. Page Details (페이지별 상세 구성)
+
 1. **메인 랜딩페이지 (`/`)**
    - 서비스 한 줄 소개 (Hero), CTA (꿈 풀이 시작), Feature 소개, 피드 예시(Social Proof).
 2. **프로덕트 상세 페이지 (`/dream-teller`)**
@@ -58,6 +64,7 @@
 ## 6. Admin UX Flow & Layout (관리자 페이지)
 
 ### 6.1. Admin Global Layout
+
 1. **Layout Structure**
    - **좌측 네비게이션 패널 (LNB)**:
      - `대시보드` (매출 등).
@@ -66,6 +73,7 @@
    - **Body**: 페이지별 콘텐츠 영역.
 
 ### 6.2. Admin Page Details
+
 1. **관리자 메인 페이지 (`/admin`)**
    - **Dashboard**: 기간별 매출 통계 그래프, 신규 가입자 수, 결제 건수 요약.
 2. **주문 내역 리스트 (`/admin/order-list`)**
@@ -83,12 +91,120 @@
 ## 7. 운영 및 정책 (Operations & Policy)
 
 ### 7.1. 예외 및 실패 처리 (Failure Handling)
+
 - **AI 생성 실패**:
-    - 결제 후 AI 응답 지연/오류 발생 시 `자동 재시도(1회)` 로직 수행.
-    - 최종 실패 시: 사용자에게 '시스템 오류' 안내 모달 표시 및 `결제 자동 취소` 또는 `무료 재시도 쿠폰` 발급.
+  - 결제 후 AI 응답 지연/오류 발생 시 `자동 재시도(1회)` 로직 수행.
+  - 최종 실패 시: 사용자에게 '시스템 오류' 안내 모달 표시 및 `결제 자동 취소` 또는 `무료 재시도 쿠폰` 발급.
 - **결제 이탈**: 결제창 진입 후 구매하지 않고 이탈한 유저 로그 수집.
 
 ### 7.2. 데이터 및 보안 정책 (Data & Safety)
+
 - **Content Safety**: OpenAI Moderation API 등을 통해 유해성 필터링.
 - **비회원 데이터**: 주문 내역 `30일` 보관 후 마스킹/삭제.
 - **개인정보**: 피드 공유 시 닉네임 외 개인 식별 정보 노출 금지.
+
+## 8. API Specification (Server Architecture)
+
+API 디자인은 **Next.js Route Handlers**를 기반으로 하며, RESTful 원칙을 준수합니다.
+
+### 8.1. Auth & Users (인증 및 유저)
+
+| Method    | Endpoint           | Description                              | Access      |
+| :-------- | :----------------- | :--------------------------------------- | :---------- |
+| **POST**  | `/api/auth/guest`  | 비회원 로그인 및 세션 발급 (전화번호/PW) | Public      |
+| **POST**  | `/api/auth/logout` | 로그아웃 (쿠키 만료)                     | User, Guest |
+| **GET**   | `/api/users/me`    | 현재 세션 유저 정보 조회                 | User        |
+| **PATCH** | `/api/users/me`    | 유저 프로필 정보 수정                    | User        |
+
+### 8.2. Dreams (꿈 해몽 및 데이터)
+
+| Method     | Endpoint           | Description                                        | Access        |
+| :--------- | :----------------- | :------------------------------------------------- | :------------ |
+| **POST**   | `/api/dreams`      | 꿈 데이터 생성 및 해몽 요청 (Pending 상태 생성)    | User, Guest   |
+| **GET**    | `/api/dreams`      | 꿈 리스트 조회 (Query: `?type=feed` or `?type=my`) | Public/User   |
+| **GET**    | `/api/dreams/[id]` | 개별 꿈 상세 조회                                  | Owner, Public |
+| **PATCH**  | `/api/dreams/[id]` | 꿈 상태 수정 (공개 여부, 삭제 등)                  | Owner         |
+| **DELETE** | `/api/dreams/[id]` | 꿈 데이터 삭제                                     | Owner         |
+
+### 8.3. Payments (결제 처리)
+
+| Method   | Endpoint                  | Description                              | Access           |
+| :------- | :------------------------ | :--------------------------------------- | :--------------- |
+| **POST** | `/api/payments/confirm`   | 토스페이먼츠 결제 승인 요청 및 완료 처리 | User, Guest      |
+| **GET**  | `/api/payments/[orderId]` | 주문 결제 상태 확인                      | Owner            |
+| **POST** | `/api/webhooks/toss`      | 결제 상태 변경 비동기 통보 (웹훅)        | Public (IP 제한) |
+
+### 8.4. Admin Features (관리자 기능)
+
+URL Prefix: `/api/admin/...` (Admin 미들웨어 적용)
+
+| Method   | Endpoint                       | Description                      | Access |
+| :------- | :----------------------------- | :------------------------------- | :----- |
+| **GET**  | `/api/admin/stats`             | 대시보드 KPI 데이터 조회         | Admin  |
+| **GET**  | `/api/admin/orders`            | 전체 주문 리스트 조회            | Admin  |
+| **GET**  | `/api/admin/orders/[id]`       | 특정 주문 상세 정보 조회         | Admin  |
+| **POST** | `/api/admin/orders/[id]/retry` | 실패한 꿈 해몽(AI) 재시도 트리거 | Admin  |
+| **GET**  | `/api/admin/users`             | 전체 회원 리스트 조회            | Admin  |
+
+## 9. DB Schema Specification (Supabase)
+
+Supabase의 Postgres DB를 사용하여 데이터 무결성과 관계형 구조를 최대한 활용합니다. (NN: Not Null)
+
+### 9.1. Entity Map
+
+**1. users (Supabase Auth)**
+
+- `auth.users` 테이블을 그대로 사용하며, 회원 인증을 담당합니다.
+
+**2. public.profiles (회원 정보)**
+
+- `auth.users`와 1:1 매핑되어 회원 전용 부가 정보를 저장합니다.
+
+| Column       | Type          | Null   | Description                         |
+| :----------- | :------------ | :----- | :---------------------------------- |
+| `id`         | `uuid`        | **NN** | PK, References `auth.users.id`      |
+| `nickname`   | `text`        | **NN** | 유저 닉네임                         |
+| `role`       | `text`        | **NN** | 'USER' or 'ADMIN' (Default: 'USER') |
+| `created_at` | `timestamptz` | **NN** | 가입 일시                           |
+
+**3. public.guests (비회원 정보)**
+
+- 비회원 식별을 위한 테이블로, 전화번호와 비밀번호로 관리됩니다.
+
+| Column          | Type          | Null   | Description                       |
+| :-------------- | :------------ | :----- | :-------------------------------- |
+| `id`            | `uuid`        | **NN** | PK (Default: `gen_random_uuid()`) |
+| `phone`         | `text`        | **NN** | 전화번호 (Unique Index)           |
+| `password_hash` | `text`        | **NN** | 비밀번호 (Bcrypt)                 |
+| `created_at`    | `timestamptz` | **NN** | 생성 일시                         |
+
+**4. public.dreams (꿈 해몽 데이터)**
+
+- 핵심 데이터 테이블로, 회원 또는 비회원에 의해 생성됩니다.
+
+| Column            | Type          | Null   | Description                                |
+| :---------------- | :------------ | :----- | :----------------------------------------- |
+| `id`              | `uuid`        | **NN** | PK (Default: `gen_random_uuid()`)          |
+| `user_id`         | `uuid`        | Null   | FK `profiles.id` (회원인 경우)             |
+| `guest_id`        | `uuid`        | Null   | FK `guests.id` (비회원인 경우)             |
+| `content`         | `text`        | **NN** | 꿈 내용 (Input)                            |
+| `expert_type`     | `text`        | **NN** | 선택한 전문가 유형 ('FREUD', 'JUNG'...)    |
+| `status`          | `text`        | **NN** | `PENDING`, `COMPLETED`, `FAILED`           |
+| `analysis_result` | `jsonb`       | Null   | AI 해몽 결과 (JSON 구조, 완료 시 생성)     |
+| `image_url`       | `text`        | Null   | 생성된 이미지 URL                          |
+| `is_public`       | `boolean`     | **NN** | 공개 여부 (Feed 노출 여부, Default: false) |
+| `created_at`      | `timestamptz` | **NN** | 생성 일시                                  |
+
+**5. public.orders (주문 및 결제)**
+
+- 결제 정보를 저장하며, `dreams` 테이블과 1:1 관계를 가집니다.
+
+| Column        | Type          | Null   | Description                          |
+| :------------ | :------------ | :----- | :----------------------------------- |
+| `id`          | `text`        | **NN** | PK (Toss Order ID)                   |
+| `dream_id`    | `uuid`        | **NN** | FK `dreams.id` (Unique)              |
+| `amount`      | `integer`     | **NN** | 결제 금액                            |
+| `payment_key` | `text`        | Null   | Toss Payment Key (결제 완료 후 저장) |
+| `status`      | `text`        | **NN** | `READY`, `DONE`, `CANCELED`          |
+| `approved_at` | `timestamptz` | Null   | 결제 승인 시각                       |
+| `created_at`  | `timestamptz` | **NN** | 주문 생성 시각                       |
