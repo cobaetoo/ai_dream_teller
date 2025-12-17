@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 
 const AuthPage = () => {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center pb-40 bg-slate-50 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-purple-200/40 blur-[120px]" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-blue-200/40 blur-[120px]" />
