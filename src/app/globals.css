@@ -156,3 +156,16 @@
     @apply cursor-pointer;
   }
 }
+
+/* Custom Calendar Styles (moved from styled-jsx) */
+.rdp {
+  --rdp-cell-size: 40px !important;
+  --rdp-accent-color: #8b5cf6 !important;
+  --rdp-background-color: #f5f3ff !important;
+  margin: 0 !important;
+}
+.rdp-day_selected:not([disabled]) {
+  background-color: #7c3aed !important;
+  font-weight: bold !important;
+  color: white !important;
+}

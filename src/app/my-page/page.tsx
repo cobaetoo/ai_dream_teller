@@ -10,13 +10,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  ChevronRight,
   Sparkles,
   LogOut,
-  User,
-  Settings,
+  Edit2, // Added Edit2
   Calendar,
+  ChevronRight, // Restored
 } from "lucide-react";
+import { Input } from "@/components/ui/input"; // Added Input
 import { Badge } from "@/components/ui/badge";
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
 
@@ -51,6 +51,13 @@ const RECENT_DREAMS = [
 ];
 
 const MyPage = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [nickname, setNickname] = useState(USER.name);
+
+  const handleSaveNickname = () => {
+    // API Call to save nickname would go here
+    setIsEditing(false);
+  };
   return (
     <div className="min-h-screen bg-slate-50 py-12 md:py-20">
       <div className="container mx-auto max-w-5xl px-4">
@@ -63,7 +70,36 @@ const MyPage = () => {
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {USER.name[0]}
                 </div>
-                <CardTitle className="text-xl">{USER.name}님</CardTitle>
+                <div className="flex items-center justify-center gap-2">
+                  {isEditing ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={nickname}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          setNickname(e.target.value)
+                        }
+                        className="h-8 w-32 text-center"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveNickname}
+                        className="h-8 px-2"
+                      >
+                        저장
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-xl">{nickname}님</CardTitle>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <CardDescription>{USER.email}</CardDescription>
               </CardHeader>
               <CardContent className="text-center">
@@ -75,18 +111,6 @@ const MyPage = () => {
                 </Badge>
 
                 <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-slate-600"
-                  >
-                    <User className="mr-2 h-4 w-4" /> 내 정보 수정
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-slate-600"
-                  >
-                    <Settings className="mr-2 h-4 w-4" /> 환경설정
-                  </Button>
                   <Button
                     variant="ghost"
                     className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600"

@@ -24,9 +24,11 @@ const DREAM_DATES = [
 ];
 
 export function DreamCalendar({ className }: { className?: string }) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    new Date()
-  );
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+
+  React.useEffect(() => {
+    setSelectedDate(new Date());
+  }, []);
 
   const modifiers = {
     hasDream: DREAM_DATES,
@@ -53,19 +55,6 @@ export function DreamCalendar({ className }: { className?: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex justify-center p-4">
-        <style jsx global>{`
-          .rdp {
-            --rdp-cell-size: 40px;
-            --rdp-accent-color: #8b5cf6;
-            --rdp-background-color: #f5f3ff;
-            margin: 0;
-          }
-          .rdp-day_selected:not([disabled]) {
-            background-color: #7c3aed;
-            font-weight: bold;
-            color: white;
-          }
-        `}</style>
         <DayPicker
           mode="single"
           selected={selectedDate}
