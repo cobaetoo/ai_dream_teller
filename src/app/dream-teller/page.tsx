@@ -75,7 +75,7 @@ const DreamTellerPage = () => {
     });
 
     // 임시 이동
-    router.push("/payments");
+    router.push(`/payments?plan=${selectedOption}`);
   };
 
   return (

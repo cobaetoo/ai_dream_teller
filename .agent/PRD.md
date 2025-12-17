@@ -56,7 +56,9 @@
 
 3. **결제 페이지 (`/payments`)**
 
-   - 영수증 디자인, 토스페이먼츠 위젯, 성공/실패 처리 로직.
+   - **UI**: 영수증 컨셉의 카드 디자인 (Receipt Style).
+   - **Function**: `기본/프리미엄` 플랜 스위처 (탭), 토스페이먼츠(Payment Widget) 연동.
+   - **Logic**: URL Query Parameter(`?plan=`)와 연동된 상품 가격 업데이트, 비동기 결제 요청.
 
 4. **해석 확인 페이지 (`/dream-result/[order-id]`)**
 
