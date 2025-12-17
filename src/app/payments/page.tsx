@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
 import {
   loadPaymentWidget,
   PaymentWidgetInstance,
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 const CLIENT_KEY = "test_ck_D5GePWvyJnrKwdP7Vzn8gLzN97Eq"; // Public Test Key
 const CUSTOMER_KEY = nanoid(); // Random Customer Key for Guest
 
-const PaymentPage = () => {
+const PaymentPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paymentWidgetRef = useRef<PaymentWidgetInstance | null>(null);
@@ -241,6 +241,20 @@ const PaymentPage = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const PaymentPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        </div>
+      }
+    >
+      <PaymentPageContent />
+    </Suspense>
   );
 };
 
