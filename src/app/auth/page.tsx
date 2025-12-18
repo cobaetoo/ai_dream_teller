@@ -16,7 +16,7 @@ const AuthPage = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/my-page`,
+          redirectTo: `${window.location.origin}/api/auth/callback?next=/my-page`,
         },
       });
 
