@@ -5,13 +5,28 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const AuthPage = () => {
   const router = useRouter();
 
-  const handleSocialLogin = () => {
-    // Mock Login for E2E Testing
-    router.push("/my-page");
+  const handleSocialLogin = async (provider: "kakao" | "google") => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/my-page`,
+        },
+      });
+
+      if (error) {
+        console.error("Login failed:", error.message);
+        alert("로그인 중 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   return (
@@ -49,7 +64,7 @@ const AuthPage = () => {
           <div className="space-y-4">
             {/* Kakao Login */}
             <Button
-              onClick={handleSocialLogin}
+              onClick={() => handleSocialLogin("kakao")}
               className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] border-none font-medium text-base relative overflow-hidden"
             >
               <div className="absolute left-4">
@@ -61,7 +76,7 @@ const AuthPage = () => {
             {/* Google Login */}
             <Button
               variant="outline"
-              onClick={handleSocialLogin}
+              onClick={() => handleSocialLogin("google")}
               className="w-full h-12 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 font-medium text-base relative overflow-hidden"
             >
               <div className="absolute left-4">
