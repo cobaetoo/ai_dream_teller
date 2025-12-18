@@ -12,9 +12,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-const SiteHeader = () => {
-  // TODO: 실제 인증 상태에 따라 메뉴 분기 처리가 필요함
-  const isLoggedIn = false;
+import { User } from "@supabase/supabase-js";
+
+interface SiteHeaderProps {
+  user: User | null;
+}
+
+const SiteHeader = ({ user }: SiteHeaderProps) => {
+  const isLoggedIn = !!user;
   const [isOpen, setIsOpen] = React.useState(false);
 
   return (

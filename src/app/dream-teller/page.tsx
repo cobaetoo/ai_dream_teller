@@ -68,12 +68,6 @@ const DreamTellerPage = () => {
       return;
     }
     // TODO: 백엔드 API 연동 -> 주문 생성 -> 결제 페이지 이동
-    console.log({
-      expert: selectedExpert,
-      option: selectedOption,
-      content: dreamContent,
-    });
-
     // 임시 이동
     router.push(`/payments?plan=${selectedOption}`);
   };

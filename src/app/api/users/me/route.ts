@@ -26,6 +26,7 @@ export async function GET() {
         email: user.email,
         nickname: profile?.nickname || "Unknown",
         role: profile?.role || "USER",
+        created_at: user.created_at,
       },
     });
   }

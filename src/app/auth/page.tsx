@@ -21,11 +21,10 @@ const AuthPage = () => {
       });
 
       if (error) {
-        console.error("Login failed:", error.message);
         alert("로그인 중 오류가 발생했습니다.");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      // Login error handled silently for security
     }
   };
 

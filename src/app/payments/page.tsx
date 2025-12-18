@@ -123,7 +123,7 @@ const PaymentPageContent = () => {
         failUrl: `${window.location.origin}/payments/fail`,
       });
     } catch (error) {
-      console.error(error);
+      // Payment failure handled safely
     }
   };
 

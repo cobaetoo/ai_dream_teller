@@ -243,3 +243,17 @@ Supabase의 Postgres DB를 사용하여 데이터 무결성과 관계형 구조�
 | `status`      | `text`        | **NN** | `READY`, `DONE`, `CANCELED`          |
 | `approved_at` | `timestamptz` | Null   | 결제 승인 시각                       |
 | `created_at`  | `timestamptz` | **NN** | 주문 생성 시각                       |
+
+## 10. API E2E Test Scenarios
+
+### 10.1. Auth & Users API
+
+| ID       | Method | Endpoint           | Scenario                                 | Expected Status  | Implementation Status |
+| :------- | :----- | :----------------- | :--------------------------------------- | :--------------- | :-------------------- |
+| API-A-01 | POST   | `/api/auth/guest`  | 비회원 로그인 성공 (Valid Phone/PW)      | 200 OK           | ✅ Pass               |
+| API-A-02 | POST   | `/api/auth/guest`  | 비회원 로그인 실패 (Invalid Credentials) | 401 Unauthorized | ✅ Pass               |
+| API-A-03 | POST   | `/api/auth/logout` | 로그아웃 (Cookie/Session Clear)          | 200 OK           | ✅ Pass               |
+| API-A-04 | GET    | `/api/users/me`    | 내 정보 조회 (Authenticated User/Guest)  | 200 OK           | ✅ Pass               |
+| API-A-05 | GET    | `/api/users/me`    | 내 정보 조회 (Unauthenticated)           | 401 Unauthorized | ✅ Pass               |
+| API-A-06 | PATCH  | `/api/users/me`    | 프로필 수정 성공 (Valid Nickname)        | 200 OK           | ✅ Pass               |
+| API-A-07 | PATCH  | `/api/users/me`    | 프로필 수정 실패 (Invalid Data)          | 400 Bad Request  | ✅ Pass               |

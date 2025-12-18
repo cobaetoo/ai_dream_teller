@@ -20,13 +20,14 @@ import { Input } from "@/components/ui/input"; // Added Input
 import { Badge } from "@/components/ui/badge";
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
 
-// Mock User Data
-const USER = {
-  name: "비시용",
-  email: "beseeyong@example.com",
-  joinedDate: "2024.12.01",
-  totalDreams: 12,
-};
+// type definition for local state
+interface UserData {
+  id: string;
+  email?: string;
+  nickname: string;
+  role: string;
+  created_at?: string;
+}
 
 // Mock Recent History
 const RECENT_DREAMS = [
@@ -51,13 +52,69 @@ const RECENT_DREAMS = [
 ];
 
 const MyPage = () => {
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [nickname, setNickname] = useState(USER.name);
+  const [nickname, setNickname] = useState("");
 
-  const handleSaveNickname = () => {
-    // API Call to save nickname would go here
-    setIsEditing(false);
+  // Fetch User Data
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/users/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUserData(data.user);
+            setNickname(data.user.nickname); // Init input value
+          }
+        }
+      } catch (error) {
+        // Handle error silently
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSaveNickname = async () => {
+    try {
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update nickname");
+      }
+
+      // Update local state
+      setUserData((prev) => (prev ? { ...prev, nickname } : null));
+      setIsEditing(false);
+    } catch (error) {
+      alert("닉네임 변경에 실패했습니다.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  // Fallback if no user
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        로그인이 필요합니다.
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 py-12 md:py-20">
       <div className="container mx-auto max-w-5xl px-4">
@@ -68,7 +125,7 @@ const MyPage = () => {
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="text-center pb-2">
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                  {USER.name[0]}
+                  {userData.nickname[0]}
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   {isEditing ? (
@@ -91,7 +148,9 @@ const MyPage = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-xl">{nickname}님</CardTitle>
+                      <CardTitle className="text-xl">
+                        {userData.nickname}님
+                      </CardTitle>
                       <button
                         onClick={() => setIsEditing(true)}
                         className="text-slate-400 hover:text-slate-600"
@@ -101,19 +160,27 @@ const MyPage = () => {
                     </div>
                   )}
                 </div>
-                <CardDescription>{USER.email}</CardDescription>
+                <CardDescription>{userData.email}</CardDescription>
               </CardHeader>
               <CardContent className="text-center">
                 <Badge
                   variant="secondary"
                   className="bg-purple-50 text-purple-700 hover:bg-purple-100 mb-6"
                 >
-                  꿈 기록 {USER.totalDreams}개
+                  가입일:{" "}
+                  {userData.created_at
+                    ? new Date(userData.created_at).toLocaleDateString()
+                    : "-"}
                 </Badge>
 
                 <div className="space-y-2">
                   <Button
                     variant="ghost"
+                    onClick={() => {
+                      fetch("/api/auth/logout", { method: "POST" }).then(() => {
+                        window.location.href = "/";
+                      });
+                    }}
                     className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4" /> 로그아웃
