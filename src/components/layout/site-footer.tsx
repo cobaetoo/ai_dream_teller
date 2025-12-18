@@ -15,10 +15,16 @@ const SiteFooter = () => {
         </div>
 
         <nav className="flex gap-4">
-          <Link href="#" className="text-sm text-gray-500 hover:text-gray-900">
+          <Link
+            href="/terms"
+            className="text-sm text-gray-500 hover:text-gray-900"
+          >
             이용약관
           </Link>
-          <Link href="#" className="text-sm text-gray-500 hover:text-gray-900">
+          <Link
+            href="/privacy"
+            className="text-sm text-gray-500 hover:text-gray-900"
+          >
             개인정보처리 방침
           </Link>
           <Link href="#" className="text-sm text-gray-500 hover:text-gray-900">

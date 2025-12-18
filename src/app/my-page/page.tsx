@@ -74,6 +74,7 @@ const MyPage = () => {
                   {isEditing ? (
                     <div className="flex items-center gap-2">
                       <Input
+                        autoFocus
                         value={nickname}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setNickname(e.target.value)

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import { Menu } from "lucide-react";
@@ -13,6 +15,7 @@ import {
 const SiteHeader = () => {
   // TODO: 실제 인증 상태에 따라 메뉴 분기 처리가 필요함
   const isLoggedIn = false;
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
@@ -31,13 +34,13 @@ const SiteHeader = () => {
           {!isLoggedIn && (
             <>
               <Link
-                href="/guest-login"
+                href="/auth"
                 className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
               >
                 로그인
               </Link>
               <Link
-                href="/guest-check"
+                href="/guest-login"
                 className="text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
               >
                 비회원 주문 조회
@@ -56,7 +59,7 @@ const SiteHeader = () => {
 
         {/* 3. 모바일 네비게이션 (md 미만에서만 노출) */}
         <div className="flex md:hidden">
-          <Sheet>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="-mr-2">
                 <Menu className="h-5 w-5" />
@@ -73,20 +76,23 @@ const SiteHeader = () => {
                 <Link
                   href="/"
                   className="text-sm font-medium hover:text-purple-600"
+                  onClick={() => setIsOpen(false)}
                 >
                   홈
                 </Link>
                 {!isLoggedIn && (
                   <>
                     <Link
-                      href="/guest-login"
+                      href="/auth"
                       className="text-sm font-medium hover:text-purple-600"
+                      onClick={() => setIsOpen(false)}
                     >
                       로그인
                     </Link>
                     <Link
-                      href="/guest-check"
+                      href="/guest-login"
                       className="text-sm font-medium hover:text-purple-600"
+                      onClick={() => setIsOpen(false)}
                     >
                       비회원 주문 조회
                     </Link>
@@ -96,6 +102,7 @@ const SiteHeader = () => {
                   <Link
                     href="/my-page"
                     className="text-sm font-medium hover:text-purple-600"
+                    onClick={() => setIsOpen(false)}
                   >
                     마이페이지
                   </Link>

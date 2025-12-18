@@ -1,9 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const AuthPage = () => {
+  const router = useRouter();
+
+  const handleSocialLogin = () => {
+    // Mock Login for E2E Testing
+    router.push("/my-page");
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center pb-40 bg-slate-50 relative overflow-hidden">
       {/* Background Effects */}
@@ -38,7 +48,10 @@ const AuthPage = () => {
 
           <div className="space-y-4">
             {/* Kakao Login */}
-            <Button className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] border-none font-medium text-base relative overflow-hidden">
+            <Button
+              onClick={handleSocialLogin}
+              className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] border-none font-medium text-base relative overflow-hidden"
+            >
               <div className="absolute left-4">
                 <KakaoLogo />
               </div>
@@ -48,6 +61,7 @@ const AuthPage = () => {
             {/* Google Login */}
             <Button
               variant="outline"
+              onClick={handleSocialLogin}
               className="w-full h-12 bg-white hover:bg-slate-50 text-slate-700 border-slate-200 font-medium text-base relative overflow-hidden"
             >
               <div className="absolute left-4">
