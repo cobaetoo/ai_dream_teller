@@ -77,6 +77,39 @@
 9. **회원 로그인 페이지 (`/auth`)**
    - 소셜 로그인(구글/카카오) 및 가입 처리.
 
+### 5.3. E2E Test Checklist (Current Implementation)
+
+현재 구현된 UX Flow의 정상 작동을 검증하기 위한 테스트 시나리오입니다.
+
+1. **Landing & Navigation**
+
+   - `Home (/)`: 헤더 네비게이션(데스크탑/모바일) 작동 확인.
+   - `Home`: Hero Section 및 "내 무의식 분석하기" CTA 버튼 클릭 시 반응 확인.
+   - `Footer`: 이용약관/개인정보처리방침 링크 작동 확인.
+
+2. **Authentication (User & Guest)**
+
+   - `Guest Login`: `/guest-login` 접속 -> 비회원 전화번호/비밀번호 입력 -> 로그인 성공/실패 처리.
+   - `User Login`: (Mock) 소셜 로그인 버튼 클릭 -> 로그인 세션 생성 확인.
+
+3. **My Page (User)**
+
+   - `Profile`: `/my-page` 접속 -> 닉네임 수정 기능(인라인 편집) 작동 및 저장 확인.
+   - `Dashboard`: 최근 해석 기록 리스트 렌더링 확인.
+   - `Calendar`: 꿈 기록 캘린더 렌더링 및 하이드레이션 오류 여부 확인.
+
+4. **Guest Features**
+
+   - `Guest Check`: `/guest-check` 접속 -> 비회원 주문 내역 리스트 조회 확인.
+
+5. **Dream Interpretation & Payment**
+
+   - `Flow`: 꿈 해몽 요청 -> `/payments` 진입 확인.
+   - `Payment`: 결제 페이지(영수증 UI) 렌더링 및 토스 페이먼츠 위젯 로드 확인.
+
+6. **Community**
+   - `Feeds`: `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트(무한 스크롤) 로딩 확인.
+
 ## 6. Admin UX Flow & Layout (관리자 페이지)
 
 ### 6.1. Admin Global Layout
