@@ -28,7 +28,7 @@ const SiteHeader = ({ user }: SiteHeaderProps) => {
         {/* 1. 로고 영역 */}
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-purple-600 to-blue-500">
               AI Dream Teller
             </span>
           </Link>

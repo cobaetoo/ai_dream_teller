@@ -26,9 +26,20 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+
+  try {
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
+    user = supabaseUser;
+  } catch (error: any) {
+    // Suppress "Refresh Token Not Found" error as it just means the user is not logged in
+    // or the session has expired.
+    if (error?.code !== "refresh_token_not_found") {
+      console.error("Supabase Auth Error:", error);
+    }
+  }
 
   return (
     <html lang="ko" suppressHydrationWarning>
