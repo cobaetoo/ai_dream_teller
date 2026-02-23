@@ -256,16 +256,8 @@ const PaymentPageContent = () => {
             <Button
               className="w-full h-14 text-lg font-bold bg-[#3282f6] hover:bg-[#2b72d7] shadow-lg shadow-blue-500/20 text-white"
               onClick={handlePayment}
-              disabled={!isWidgetLoaded}
             >
-              {!isWidgetLoaded ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  로딩 중...
-                </>
-              ) : (
-                `${product.price.toLocaleString()}원 결제하기`
-              )}
+              {`${product.price.toLocaleString()}원 결제하기`}
             </Button>
             <p className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
               <AlertCircle className="h-3 w-3" />
