@@ -88,16 +88,27 @@ const PaymentPageContent = () => {
     }
   };
 
+  // Widget Initialization & Price Sync
   useEffect(() => {
     let isCancelled = false;
 
     (async () => {
-      // Check if widget is already initialized
-      if (paymentWidgetRef.current && paymentMethodsWidgetRef.current) {
-        // Just update the amount if already loaded
-        paymentMethodsWidgetRef.current.updateAmount(product.price);
+      // If widget is already fully loaded, just update the amount safely
+      if (
+        paymentWidgetRef.current &&
+        paymentMethodsWidgetRef.current &&
+        isWidgetLoaded
+      ) {
+        try {
+          paymentMethodsWidgetRef.current.updateAmount(product.price);
+        } catch (error) {
+          console.warn("Update amount failed:", error);
+        }
         return;
       }
+
+      // Prevent re-initialization before it's ready if refs already exist
+      if (paymentWidgetRef.current) return;
 
       try {
         const paymentWidget = await loadPaymentWidget(CLIENT_KEY, CUSTOMER_KEY);
@@ -118,7 +129,7 @@ const PaymentPageContent = () => {
         paymentWidgetRef.current = paymentWidget;
         paymentMethodsWidgetRef.current = paymentMethodsWidget;
 
-        // Listen for the "ready" event to enable the payment button
+        // Enable payment button only after UI is fully rendered
         paymentMethodsWidget.on("ready", () => {
           if (!isCancelled) {
             setIsWidgetLoaded(true);
@@ -132,7 +143,7 @@ const PaymentPageContent = () => {
     return () => {
       isCancelled = true;
     };
-  }, [product.price]);
+  }, [product.price, isWidgetLoaded]);
 
   const handlePayment = async () => {
     const paymentWidget = paymentWidgetRef.current;
