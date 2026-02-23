@@ -117,7 +117,13 @@ const PaymentPageContent = () => {
 
         paymentWidgetRef.current = paymentWidget;
         paymentMethodsWidgetRef.current = paymentMethodsWidget;
-        setIsWidgetLoaded(true);
+
+        // Listen for the "ready" event to enable the payment button
+        paymentMethodsWidget.on("ready", () => {
+          if (!isCancelled) {
+            setIsWidgetLoaded(true);
+          }
+        });
       } catch (err) {
         console.error("Failed to load Toss Payments widget:", err);
       }
