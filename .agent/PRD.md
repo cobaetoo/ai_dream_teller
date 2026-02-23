@@ -44,28 +44,23 @@
 ### 5.2. Page Details (페이지별 상세 구성)
 
 1. **메인 랜딩페이지 (`/`)**
-
    - **Hero Section**: "무의식이 보내는 신호, 꿈을 해석해드립니다." (심리학적 접근 강조), CTA ("내 무의식 분석하기").
    - **Feature Section**: 프로이트/융 이론 기반의 전문적 분석, 내면의 불안/욕구 해소, 시각화, 비밀 보장.
    - **Social Proof**: "해석을 통해 내 진짜 속마음을 알게 되었어요" 등 자아 성찰과 인사이트 중심의 후기.
 
 2. **프로덕트 상세 페이지 (`/dream-teller`)**
-
    - 사용법 안내, 전문가(프로이트 등) 선택, 꿈 입력, 풀이 요청, 구매 옵션(기본/이미지).
    - 주의사항: 생성 시간(3분), 의학적 진단 대체 불가 안내.
 
 3. **결제 페이지 (`/payments`)**
-
    - **UI**: 영수증 컨셉의 카드 디자인 (Receipt Style).
    - **Function**: `기본/프리미엄` 플랜 스위처 (탭), 토스페이먼츠(Payment Widget) 연동.
    - **Logic**: URL Query Parameter(`?plan=`)와 연동된 상품 가격 업데이트, 비동기 결제 요청.
 
 4. **해석 확인 페이지 (`/dream-result/[order-id]`)**
-
    - 꿈 해석 및 이미지 확인, 공유(링크/SNS), (회원) 캘린더 연동.
 
 5. **유저 마이페이지 (`/my-page`)**
-
    - (회원전용) 캘린더(하이라이트), 구매 내역 리스트, 프로필 수정.
 
 6. **비회원 로그인 (`/guest-login`)**
@@ -81,20 +76,20 @@
 
 현재 구현된 UX Flow의 정상 작동을 검증하기 위한 테스트 시나리오입니다.
 
-| 구분                     | 테스트 대상    | 테스트 시나리오                                                               | 상태       | 특이사항                                       |
-| :----------------------- | :------------- | :---------------------------------------------------------------------------- | :--------- | :--------------------------------------------- |
-| **Landing & Navigation** | `Home (/)`     | 헤더 네비게이션(데스크탑/모바일) 작동 확인                                    | ✅ Pass    | 로고/메뉴 정상 작동                            |
-|                          | `Home (/)`     | Hero Section 및 "내 무의식 분석하기" CTA 버튼 클릭 시 반응 확인               | ✅ Pass    | `/dream-teller` 리다이렉트 정상                |
-|                          | `Footer`       | 이용약관/개인정보처리방침 링크 작동 확인                                      | ✅ Pass    | `/terms`, `/privacy` 링크 연결 완료            |
-| **Authentication**       | `Guest Login`  | `/guest-login` 접속 -> 비회원 전화번호/비밀번호 입력 -> 로그인 성공/실패 처리 | ✅ Pass    | Mock Data (010-1234-5678 / 1234) 적용 완료     |
-|                          | `User Login`   | (Mock) 소셜 로그인 버튼 클릭 -> 로그인 세션 생성 확인                         | ✅ Pass    | 버튼 클릭 시 `/my-page` 이동 처리 완료         |
-| **My Page (User)**       | `Profile`      | 닉네임 수정 기능(인라인 편집) 작동 및 저장 확인                               | ✅ Pass    | AutoFocus 적용 및 상태 업데이트 로직 검증 완료 |
-|                          | `Dashboard`    | 최근 해석 기록 리스트 렌더링 확인                                             | ✅ Pass    | Mock Data 리스트 렌더링 정상                   |
-|                          | `Calendar`     | 꿈 기록 캘린더 렌더링 및 하이드레이션 오류 여부 확인                          | ✅ Pass    | 오류 없이 렌더링 정상                          |
-| **Guest Features**       | `Guest Check`  | `/guest-check` 접속 -> 비회원 주문 내역 리스트 조회 확인                      | ✅ Pass    | Mock Data 리스트 렌더링 정상                   |
-| **Dream & Payment**      | `Request Flow` | 꿈 해몽 요청 -> `/payments` 진입 확인                                         | ✅ Pass    | 쿼리 파라미터 전달 및 이동 정상                |
-|                          | `Payment Page` | 결제 페이지(영수증 UI) 렌더링 및 토스 페이먼츠 위젯 로드 확인                 | ⚠️ Partial | TODO: API 인증키 발급 및 환경변수 설정 필요    |
-| **Community**            | `Feeds`        | `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트(무한 스크롤) 로딩 확인            | ✅ Pass    | 무한 스크롤 정상 작동 (Content: Lorem Ipsum)   |
+| 구분                     | 테스트 대상    | 테스트 시나리오                                                               | 상태    | 특이사항                                               |
+| :----------------------- | :------------- | :---------------------------------------------------------------------------- | :------ | :----------------------------------------------------- |
+| **Landing & Navigation** | `Home (/)`     | 헤더 네비게이션(데스크탑/모바일) 작동 확인                                    | ✅ Pass | 로고/메뉴 정상 작동                                    |
+|                          | `Home (/)`     | Hero Section 및 "내 무의식 분석하기" CTA 버튼 클릭 시 반응 확인               | ✅ Pass | `/dream-teller` 리다이렉트 정상                        |
+|                          | `Footer`       | 이용약관/개인정보처리방침 링크 작동 확인                                      | ✅ Pass | `/terms`, `/privacy` 링크 연결 완료                    |
+| **Authentication**       | `Guest Login`  | `/guest-login` 접속 -> 비회원 전화번호/비밀번호 입력 -> 로그인 성공/실패 처리 | ✅ Pass | Mock Data (010-1234-5678 / 1234) 적용 완료             |
+|                          | `User Login`   | (Mock) 소셜 로그인 버튼 클릭 -> 로그인 세션 생성 확인                         | ✅ Pass | 버튼 클릭 시 `/my-page` 이동 처리 완료                 |
+| **My Page (User)**       | `Profile`      | 닉네임 수정 기능(인라인 편집) 작동 및 저장 확인                               | ✅ Pass | AutoFocus 적용 및 상태 업데이트 로직 검증 완료         |
+|                          | `Dashboard`    | 최근 해석 기록 리스트 렌더링 확인                                             | ✅ Pass | Mock Data 리스트 렌더링 정상                           |
+|                          | `Calendar`     | 꿈 기록 캘린더 렌더링 및 하이드레이션 오류 여부 확인                          | ✅ Pass | 오류 없이 렌더링 정상                                  |
+| **Guest Features**       | `Guest Check`  | `/guest-check` 접속 -> 비회원 주문 내역 리스트 조회 확인                      | ✅ Pass | Mock Data 리스트 렌더링 정상                           |
+| **Dream & Payment**      | `Request Flow` | 꿈 해몽 요청 -> `/payments` 진입 확인                                         | ✅ Pass | 쿼리 파라미터 전달 및 이동 정상                        |
+|                          | `Payment Page` | 결제 페이지(영수증 UI) 렌더링 및 토스 페이먼츠 위젯 로드 확인                 | ✅ Pass | 결제 승인 API 및 환경변수(Client/Secret Key) 연동 완료 |
+| **Community**            | `Feeds`        | `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트(무한 스크롤) 로딩 확인            | ✅ Pass | 무한 스크롤 정상 작동 (Content: Lorem Ipsum)           |
 
 ## 6. Admin UX Flow & Layout (관리자 페이지)
 

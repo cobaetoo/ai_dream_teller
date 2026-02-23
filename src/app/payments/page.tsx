@@ -24,7 +24,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { nanoid } from "nanoid";
 import { cn } from "@/lib/utils";
 
-const CLIENT_KEY = "test_ck_D5GePWvyJnrKwdP7Vzn8gLzN97Eq"; // Public Test Key
+const CLIENT_KEY =
+  process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ||
+  "test_ck_D5GePWvyJnrKwdP7Vzn8gLzN97Eq"; // Fallback to public test key
 const CUSTOMER_KEY = nanoid(); // Random Customer Key for Guest
 
 const PaymentPageContent = () => {
@@ -95,7 +97,7 @@ const PaymentPageContent = () => {
       const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
         "#payment-widget",
         { value: product.price },
-        { variantKey: "DEFAULT" } // Widget Variant
+        { variantKey: "DEFAULT" }, // Widget Variant
       );
 
       // 2. Terms of Service Widget
@@ -112,14 +114,12 @@ const PaymentPageContent = () => {
     if (!paymentWidget) return;
 
     try {
-      // Using a dummy success URL for now. In real app, this should be /payments/success
-      // For now, let's redirect to a local success simulation page.
       await paymentWidget.requestPayment({
         orderId: nanoid(),
         orderName: product.title,
         customerName: "익명 회원",
         customerEmail: "customer@example.com",
-        successUrl: `${window.location.origin}/dream-result/ORDER_12345?paymentKey=TEST`,
+        successUrl: `${window.location.origin}/payments/success`,
         failUrl: `${window.location.origin}/payments/fail`,
       });
     } catch (error) {
@@ -151,7 +151,7 @@ const PaymentPageContent = () => {
                   "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all",
                   selectedPlanId === "basic"
                     ? "bg-white text-slate-900 shadow-sm ring-1 ring-black/5"
-                    : "text-slate-500 hover:text-slate-700"
+                    : "text-slate-500 hover:text-slate-700",
                 )}
               >
                 <ScrollText className="w-4 h-4" />
@@ -163,7 +163,7 @@ const PaymentPageContent = () => {
                   "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-lg transition-all",
                   selectedPlanId === "premium"
                     ? "bg-white text-purple-700 shadow-sm ring-1 ring-black/5"
-                    : "text-slate-500 hover:text-slate-700"
+                    : "text-slate-500 hover:text-slate-700",
                 )}
               >
                 <ImageIcon className="w-4 h-4" />
