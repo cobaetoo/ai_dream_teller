@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 
 const CLIENT_KEY =
   process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ||
-  "test_ck_D5GePWvyJnrKwdP7Vzn8gLzN97Eq"; // Fallback to public test key
+  "test_ck_E92LAa5PVbLj49ALbX0z87YmpXyJ"; // User's Test Client Key Wait for Env Reload
 const CUSTOMER_KEY = nanoid(); // Random Customer Key for Guest
 
 const PaymentPageContent = () => {
@@ -89,24 +89,43 @@ const PaymentPageContent = () => {
   };
 
   useEffect(() => {
+    let isCancelled = false;
+
     (async () => {
-      // Load widget only once if possible or re-render methods
-      const paymentWidget = await loadPaymentWidget(CLIENT_KEY, CUSTOMER_KEY);
+      // Check if widget is already initialized
+      if (paymentWidgetRef.current && paymentMethodsWidgetRef.current) {
+        // Just update the amount if already loaded
+        paymentMethodsWidgetRef.current.updateAmount(product.price);
+        return;
+      }
 
-      // 1. Payment Methods Widget
-      const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
-        "#payment-widget",
-        { value: product.price },
-        { variantKey: "DEFAULT" }, // Widget Variant
-      );
+      try {
+        const paymentWidget = await loadPaymentWidget(CLIENT_KEY, CUSTOMER_KEY);
+        if (isCancelled) return;
 
-      // 2. Terms of Service Widget
-      paymentWidget.renderAgreement("#agreement", { variantKey: "AGREEMENT" });
+        // 1. Payment Methods Widget
+        const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
+          "#payment-widget",
+          { value: product.price },
+          { variantKey: "DEFAULT" }, // Widget Variant
+        );
 
-      paymentWidgetRef.current = paymentWidget;
-      paymentMethodsWidgetRef.current = paymentMethodsWidget;
-      setIsWidgetLoaded(true);
+        // 2. Terms of Service Widget
+        paymentWidget.renderAgreement("#agreement", {
+          variantKey: "AGREEMENT",
+        });
+
+        paymentWidgetRef.current = paymentWidget;
+        paymentMethodsWidgetRef.current = paymentMethodsWidget;
+        setIsWidgetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load Toss Payments widget:", err);
+      }
     })();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [product.price]);
 
   const handlePayment = async () => {
@@ -122,8 +141,14 @@ const PaymentPageContent = () => {
         successUrl: `${window.location.origin}/payments/success`,
         failUrl: `${window.location.origin}/payments/fail`,
       });
-    } catch (error) {
-      // Payment failure handled safely
+    } catch (error: any) {
+      if (
+        error?.code !== "USER_CANCEL" &&
+        error?.code !== "NOT_AGREED" &&
+        error?.code !== "INVALID_AGREEMENT"
+      ) {
+        console.error("Payment failed", error);
+      }
     }
   };
 

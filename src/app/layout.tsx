@@ -45,6 +45,7 @@ export default async function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col font-sans`}
+        suppressHydrationWarning
       >
         <SiteHeader user={user} />
         <main className="flex-1 w-full">{children}</main>

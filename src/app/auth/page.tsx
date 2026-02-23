@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getURL } from "@/lib/utils";
 
 const AuthPage = () => {
   const router = useRouter();
@@ -16,7 +17,7 @@ const AuthPage = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?next=/my-page`,
+          redirectTo: `${window.location.origin}/api/auth/callback`,
         },
       });
 
