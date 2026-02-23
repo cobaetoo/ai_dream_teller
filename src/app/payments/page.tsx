@@ -88,40 +88,25 @@ const PaymentPageContent = () => {
     }
   };
 
-  // Widget Initialization & Price Sync
+  // 1. Initialize Widget
   useEffect(() => {
-    let isCancelled = false;
-
     (async () => {
-      // If widget is already fully loaded, just update the amount safely
-      if (
-        paymentWidgetRef.current &&
-        paymentMethodsWidgetRef.current &&
-        isWidgetLoaded
-      ) {
-        try {
-          paymentMethodsWidgetRef.current.updateAmount(product.price);
-        } catch (error) {
-          console.warn("Update amount failed:", error);
-        }
-        return;
-      }
-
-      // Prevent re-initialization before it's ready if refs already exist
+      // Prevent double initialization in React 18 Strict Mode
       if (paymentWidgetRef.current) return;
 
       try {
         const paymentWidget = await loadPaymentWidget(CLIENT_KEY, CUSTOMER_KEY);
-        if (isCancelled) return;
 
-        // 1. Payment Methods Widget
+        // Prevent rendering if another pass already initialized it during await
+        if (paymentWidgetRef.current) return;
+
+        // Render widgets initially
         const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
           "#payment-widget",
           { value: product.price },
-          { variantKey: "DEFAULT" }, // Widget Variant
+          { variantKey: "DEFAULT" },
         );
 
-        // 2. Terms of Service Widget
         paymentWidget.renderAgreement("#agreement", {
           variantKey: "AGREEMENT",
         });
@@ -129,20 +114,27 @@ const PaymentPageContent = () => {
         paymentWidgetRef.current = paymentWidget;
         paymentMethodsWidgetRef.current = paymentMethodsWidget;
 
-        // Enable payment button only after UI is fully rendered
+        // Listen for the "ready" event
         paymentMethodsWidget.on("ready", () => {
-          if (!isCancelled) {
-            setIsWidgetLoaded(true);
-          }
+          setIsWidgetLoaded(true);
         });
       } catch (err) {
         console.error("Failed to load Toss Payments widget:", err);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    return () => {
-      isCancelled = true;
-    };
+  // 2. Sync Price Changes
+  useEffect(() => {
+    const paymentMethodsWidget = paymentMethodsWidgetRef.current;
+    if (paymentMethodsWidget && isWidgetLoaded) {
+      try {
+        paymentMethodsWidget.updateAmount(product.price);
+      } catch (error) {
+        console.warn("Update amount failed:", error);
+      }
+    }
   }, [product.price, isWidgetLoaded]);
 
   const handlePayment = async () => {
