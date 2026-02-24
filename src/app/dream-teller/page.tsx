@@ -11,6 +11,7 @@ import {
   ScrollText,
   AlertCircle,
   ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -59,17 +60,52 @@ const DreamTellerPage = () => {
   const [selectedOption, setSelectedOption] = useState<string>(OPTIONS[1].id); // Default to Premium
   const [dreamContent, setDreamContent] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleExpertSelect = (id: string) => setSelectedExpert(id);
   const handleOptionSelect = (id: string) => setSelectedOption(id);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!dreamContent.trim()) {
       alert("꿈 내용을 입력해주세요!");
       return;
     }
-    // TODO: 백엔드 API 연동 -> 주문 생성 -> 결제 페이지 이동
-    // 임시 이동
-    router.push(`/payments?plan=${selectedOption}`);
+
+    setIsLoading(true);
+
+    try {
+      const selectedPrice =
+        OPTIONS.find((o) => o.id === selectedOption)?.price || 5900;
+
+      const response = await fetch("/api/dreams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: dreamContent,
+          expert_type: selectedExpert.toUpperCase(),
+          amount: selectedPrice,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // 주문 생성 성공 -> 결제 페이지로 이동
+        router.push(
+          `/payments?plan=${selectedOption}&orderId=${result.orderId}`,
+        );
+      } else {
+        alert(
+          "요청 처리 중 문제가 발생했습니다: " +
+            (result.error || "알 수 없는 오류"),
+        );
+      }
+    } catch (err) {
+      console.error("Dream submission error:", err);
+      alert("요청 처리 중 문제가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -172,11 +208,21 @@ const DreamTellerPage = () => {
 
             <Button
               size="lg"
-              className="w-full h-14 text-lg bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all"
+              className="w-full h-14 text-lg bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all font-bold disabled:opacity-70"
               onClick={handleSubmit}
+              disabled={isLoading}
             >
-              분석 요청 및 결제하기
-              <ArrowRight className="ml-2 h-5 w-5" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  주문 생성 중...
+                </>
+              ) : (
+                <>
+                  분석 요청 및 결제하기
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
             </Button>
           </div>
         </div>

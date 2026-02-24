@@ -26,8 +26,16 @@ import { cn } from "@/lib/utils";
 
 const CLIENT_KEY =
   process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ||
-  "test_ck_E92LAa5PVbLj49ALbX0z87YmpXyJ"; // User's Test Client Key Wait for Env Reload
+  "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 const CUSTOMER_KEY = nanoid(); // Random Customer Key for Guest
+
+const WidgetContainer = React.memo(() => (
+  <div className="bg-slate-50 p-4 pt-0 border-t border-slate-100">
+    <div id="payment-widget" className="w-full" />
+    <div id="agreement" className="w-full mt-2" />
+  </div>
+));
+WidgetContainer.displayName = "WidgetContainer";
 
 const PaymentPageContent = () => {
   const router = useRouter();
@@ -88,19 +96,20 @@ const PaymentPageContent = () => {
     }
   };
 
+  const isInitializing = useRef(false);
+  const isCancelingPaymentRef = useRef(false);
+
   // 1. Initialize Widget
   useEffect(() => {
-    (async () => {
-      // Prevent double initialization in React 18 Strict Mode
-      if (paymentWidgetRef.current) return;
+    if (isInitializing.current || paymentWidgetRef.current) return;
+    isInitializing.current = true;
 
+    const initializeWidget = async () => {
       try {
         const paymentWidget = await loadPaymentWidget(CLIENT_KEY, CUSTOMER_KEY);
 
-        // Prevent rendering if another pass already initialized it during await
-        if (paymentWidgetRef.current) return;
+        if (paymentWidgetRef.current) return; // Prevent if somehow initialized twice
 
-        // Render widgets initially
         const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
           "#payment-widget",
           { value: product.price },
@@ -120,9 +129,50 @@ const PaymentPageContent = () => {
         });
       } catch (err) {
         console.error("Failed to load Toss Payments widget:", err);
+      } finally {
+        isInitializing.current = false;
       }
-    })();
+    };
+
+    initializeWidget();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Cleanup stray Toss widgets on popstate (back button) or unmount
+  useEffect(() => {
+    const handlePopState = () => {
+      // 만약 토스 모달 내장 UI (X버튼, 취소 등)를 통해서 우리가 강제로 뒤로가기 처리를 한 경우
+      if (isCancelingPaymentRef.current) {
+        isCancelingPaymentRef.current = false;
+        return;
+      }
+
+      // 모달이 떠있는 도중 유저가 물리 브라우저/안드로이드 뒤로가기 버튼을 누른 경우
+      let hasModal = false;
+      const iframes = document.querySelectorAll('iframe[src*="tosspayments"]');
+      iframes.forEach((iframe) => {
+        let parent = iframe.parentElement;
+        // 인라인 위젯 여부 확인
+        while (parent && parent !== document.body) {
+          if (parent.id === "payment-widget" || parent.id === "agreement") {
+            return;
+          }
+          parent = parent.parentElement;
+        }
+        hasModal = true;
+      });
+
+      if (hasModal) {
+        // iframe을 직접 DOM에서 삭제하면 SDK 내부의 결제 진행 상태(isPaymentInProgress)가 꼬여 다음 결제창이 열리지 않습니다!
+        // 가장 안전하고 우아한 해결책은 페이지를 리로드하여 SDK를 완전 초기화 하는 것입니다 (파라미터/쿼리는 유지되므로 유저는 변화를 크게 못 느낌)
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   // 2. Sync Price Changes
@@ -138,12 +188,24 @@ const PaymentPageContent = () => {
   }, [product.price, isWidgetLoaded]);
 
   const handlePayment = async () => {
+    if (!isWidgetLoaded) return;
     const paymentWidget = paymentWidgetRef.current;
     if (!paymentWidget) return;
 
+    // 결제 시도 전 취소 플래그 초기화
+    isCancelingPaymentRef.current = false;
+
+    // 팝업이 열릴 때 브라우저 뒤로가기를 방어하기 위한 더미 히스토리 상태 추가
+    window.history.pushState({ tossModalOpen: true }, "", window.location.href);
+
     try {
+      const orderIdParam = searchParams.get("orderId");
+      if (!orderIdParam) {
+        console.warn("orderId parameter is missing. Falling back to nanoid.");
+      }
+
       await paymentWidget.requestPayment({
-        orderId: nanoid(),
+        orderId: orderIdParam || nanoid(),
         orderName: product.title,
         customerName: "익명 회원",
         customerEmail: "customer@example.com",
@@ -151,6 +213,14 @@ const PaymentPageContent = () => {
         failUrl: `${window.location.origin}/payments/fail`,
       });
     } catch (error: any) {
+      // 토스 결제창을 사용자가 X 버튼으로 닫았거나 필수 약관 미동의 시
+      isCancelingPaymentRef.current = true;
+
+      // 팝업이 닫히므로 더미 히스토리에서 다시 뒤로가기 처리해서 상태를 복구함
+      if (window.history.state?.tossModalOpen) {
+        window.history.back();
+      }
+
       if (
         error?.code !== "USER_CANCEL" &&
         error?.code !== "NOT_AGREED" &&
@@ -245,19 +315,19 @@ const PaymentPageContent = () => {
             </ul>
           </div>
 
-          {/* Payment Widget Area */}
-          <div className="bg-slate-50 p-4 pt-0 border-t border-slate-100">
-            <div id="payment-widget" className="w-full" />
-            <div id="agreement" className="w-full mt-2" />
-          </div>
+          {/* Payment Widget Area (Stable DOM) */}
+          <WidgetContainer />
 
           {/* Action Button */}
           <div className="p-6 bg-white border-t border-slate-100">
             <Button
-              className="w-full h-14 text-lg font-bold bg-[#3282f6] hover:bg-[#2b72d7] shadow-lg shadow-blue-500/20 text-white"
+              className="w-full h-14 text-lg font-bold bg-[#3282f6] hover:bg-[#2b72d7] shadow-lg shadow-blue-500/20 text-white disabled:bg-slate-300 disabled:shadow-none"
               onClick={handlePayment}
+              disabled={!isWidgetLoaded}
             >
-              {`${product.price.toLocaleString()}원 결제하기`}
+              {isWidgetLoaded
+                ? `${product.price.toLocaleString()}원 결제하기`
+                : "결제 모듈 로딩 중..."}
             </Button>
             <p className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
               <AlertCircle className="h-3 w-3" />

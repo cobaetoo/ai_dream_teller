@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
@@ -34,8 +35,32 @@ export async function POST(req: Request) {
 
     if (response.ok) {
       const data = await response.json();
-      // 결제가 최종적으로 성공했으므로, 여기서 Supabase DB 업데이트 로직 처리
-      // 현재는 일단 성공 상태만 리턴합니다.
+
+      try {
+        const supabase = createAdminClient();
+
+        const { error: orderError } = await supabase
+          .from("orders")
+          .update({
+            status: "DONE",
+            payment_key: paymentKey,
+            approved_at: data.approvedAt || new Date().toISOString(),
+          })
+          .eq("id", orderId);
+
+        if (orderError) {
+          console.error(
+            "Order DB update failed after successful payment:",
+            orderError,
+          );
+        }
+      } catch (dbErr) {
+        console.error(
+          "Supabase integration error during payment confirm:",
+          dbErr,
+        );
+      }
+
       return NextResponse.json({
         success: true,
         data,
