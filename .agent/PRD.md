@@ -84,6 +84,7 @@
 | **Authentication**       | `Guest Login`  | `/guest-login` 접속 -> 비회원 전화번호/비밀번호 입력 -> 로그인 성공/실패 처리 | ✅ Pass | Mock Data (010-1234-5678 / 1234) 적용 완료                                    |
 |                          | `User Login`   | (Mock) 소셜 로그인 버튼 클릭 -> 로그인 세션 생성 확인                         | ✅ Pass | 버튼 클릭 시 `/my-page` 이동 처리 완료                                        |
 | **My Page (User)**       | `Profile`      | 닉네임 수정 기능(인라인 편집) 작동 및 저장 확인                               | ✅ Pass | AutoFocus 적용 및 상태 업데이트 로직 검증 완료                                |
+|                          | `Logout`       | 로그아웃 버튼 클릭 시 alert 노출 및 리다이렉트 확인                           | ✅ Pass | 명시적 로그아웃 알림(alert) 적용 완료                                         |
 |                          | `Dashboard`    | 최근 해석 기록 리스트 렌더링 확인                                             | ✅ Pass | Mock Data 리스트 렌더링 정상                                                  |
 |                          | `Calendar`     | 꿈 기록 캘린더 렌더링 및 하이드레이션 오류 여부 확인                          | ✅ Pass | 오류 없이 렌더링 정상                                                         |
 | **Guest Features**       | `Guest Check`  | `/guest-check` 접속 -> 비회원 주문 내역 리스트 조회 확인                      | ✅ Pass | Mock Data 리스트 렌더링 정상                                                  |
