@@ -123,7 +123,7 @@ async function runTests() {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: t.headers,
+        headers: t.headers as Record<string, string>,
         body: JSON.stringify(t.body),
       });
       const data = await res.json();
