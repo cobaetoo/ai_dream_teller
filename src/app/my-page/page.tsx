@@ -178,6 +178,7 @@ const MyPage = () => {
                     variant="ghost"
                     onClick={() => {
                       fetch("/api/auth/logout", { method: "POST" }).then(() => {
+                        alert("안전하게 로그아웃 되었습니다.");
                         window.location.href = "/";
                       });
                     }}
