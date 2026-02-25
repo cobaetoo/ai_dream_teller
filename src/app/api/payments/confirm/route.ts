@@ -14,6 +14,29 @@ export async function POST(req: Request) {
       );
     }
 
+    const supabase = createAdminClient();
+
+    // 1. 주문 데이터 검증 (DB 조회)
+    const { data: orderData, error: orderCheckError } = await supabase
+      .from("orders")
+      .select("amount, dream_id")
+      .eq("id", orderId)
+      .single();
+
+    if (orderCheckError || !orderData) {
+      return NextResponse.json(
+        { success: false, error: "Order not found or invalid orderId." },
+        { status: 400 },
+      );
+    }
+
+    if (orderData.amount !== amount) {
+      return NextResponse.json(
+        { success: false, error: "Payment amount does not match." },
+        { status: 400 },
+      );
+    }
+
     const encryptedSecretKey =
       "Basic " + Buffer.from(widgetSecretKey + ":").toString("base64");
 
@@ -59,6 +82,23 @@ export async function POST(req: Request) {
           "Supabase integration error during payment confirm:",
           dbErr,
         );
+      }
+
+      // Background AI generation task
+      if (orderData?.dream_id) {
+        const protocol = req.headers.get("x-forwarded-proto") || "http";
+        const host = req.headers.get("host");
+        const baseUrl = `${protocol}://${host}`;
+
+        // Fire and forget
+        fetch(`${baseUrl}/api/dreams/generate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({ dreamId: orderData.dream_id }),
+        }).catch((err) => console.error("AI trigger error:", err));
       }
 
       return NextResponse.json({

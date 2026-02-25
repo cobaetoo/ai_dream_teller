@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 
 export async function POST(req: Request) {
@@ -14,6 +15,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // 세션에서 현재 유저 정보 가져오기 (회원인 경우)
+    const supabaseServer = await createClient();
+    const {
+      data: { user },
+    } = await supabaseServer.auth.getUser();
+
     const supabase = createAdminClient();
 
     // 1. 꿈 데이터 생성 (PENDING 상태)
@@ -23,6 +30,7 @@ export async function POST(req: Request) {
         content,
         expert_type,
         status: "PENDING",
+        user_id: user?.id || null, // 회원이면 user_id 저장
       })
       .select("id")
       .single();
