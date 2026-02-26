@@ -1,35 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { EyeOff, Eye, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 // Mock public feeds
-const MOCK_FEEDS = Array.from({ length: 12 }).map((_, i) => ({
-  id: `feed-${i + 1}`,
-  expertType: i % 2 === 0 ? "JUNG" : "FREUD",
-  content: "어제 하늘을 나는 꿈을 꾸었는데 아주 생생했어요...",
-  createdAt: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 7),
-  isPublic: i !== 3, // 하나 정도는 비공개 처리로 테스트
-  userNickname: `Dreamer_${i + 1}`,
-}));
-
 export default function AdminFeedListPage() {
-  const [feeds, setFeeds] = useState(MOCK_FEEDS);
+  const [feeds, setFeeds] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const toggleVisibility = (id: string, currentVisibility: boolean) => {
-    // 백엔드 연동 전 상태 변경 테스트
+  useEffect(() => {
+    fetch("/api/admin/dreams/public")
+      .then((res) => res.json())
+      .then((data) => {
+        setFeeds(data.feeds || []);
+        setLoading(false);
+      });
+  }, []);
+
+  const toggleVisibility = async (id: string, currentVisibility: boolean) => {
     const action = currentVisibility ? "비공개(숨김)" : "공개";
     const confirmToggle = confirm(`해당 콘텐츠를 ${action} 처리하시겠습니까?`);
-    if (confirmToggle) {
-      setFeeds((prev) =>
-        prev.map((feed) =>
-          feed.id === id ? { ...feed, isPublic: !currentVisibility } : feed,
-        ),
-      );
+    if (!confirmToggle) return;
+
+    try {
+      const res = await fetch(`/api/admin/dreams/${id}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_public: !currentVisibility }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setFeeds((prev) =>
+          prev.map((feed) =>
+            feed.id === id ? { ...feed, is_public: !currentVisibility } : feed,
+          ),
+        );
+      } else {
+        alert(data.error || "상태 변경 실패");
+      }
+    } catch (err: any) {
+      alert("API 오류 발생: " + err.message);
     }
   };
 
@@ -58,64 +73,77 @@ export default function AdminFeedListPage() {
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredFeeds.map((feed) => (
-          <div
-            key={feed.id}
-            className={`relative flex flex-col justify-between rounded-xl border p-5 shadow-sm transition-all ${
-              feed.isPublic
-                ? "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                : "border-red-200 bg-red-50 opacity-80 dark:border-red-900/50 dark:bg-gray-800"
-            }`}
-          >
-            <div>
-              <div className="mb-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-purple-600 dark:text-purple-400">
-                  {feed.expertType}
-                </span>
-                <span>{format(feed.createdAt, "yyyy-MM-dd HH:mm")}</span>
-              </div>
-              <p className="mb-4 line-clamp-4 text-sm text-gray-800 dark:text-gray-200">
-                "{feed.content}"
-              </p>
-              <div className="text-xs font-medium text-gray-500">
-                작성자: {feed.userNickname}
-              </div>
-            </div>
-
-            <div className="mt-6 flex items-center justify-between border-t pt-4 dark:border-gray-700">
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                  feed.isPublic
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                }`}
-              >
-                {feed.isPublic ? "공개 상태" : "숨김 처리됨"}
-              </span>
-
-              <Button
-                variant={feed.isPublic ? "outline" : "default"}
-                size="sm"
-                className={
-                  feed.isPublic
-                    ? "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400"
-                    : "bg-green-600 text-white hover:bg-green-700"
-                }
-                onClick={() => toggleVisibility(feed.id, feed.isPublic)}
-              >
-                {feed.isPublic ? (
-                  <>
-                    <EyeOff className="mr-1.5 h-3.5 w-3.5" /> 강제 숨김
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-1.5 h-3.5 w-3.5" /> 공개 복원
-                  </>
-                )}
-              </Button>
-            </div>
+        {feeds.length === 0 && loading && (
+          <div className="col-span-full py-12 text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
           </div>
-        ))}
+        )}
+        {filteredFeeds.map((feed) => {
+          const author = feed.profiles ||
+            feed.guests || { nickname: "알수없음" };
+          return (
+            <div
+              key={feed.id}
+              className={`relative flex flex-col justify-between rounded-xl border p-5 shadow-sm transition-all ${
+                feed.is_public
+                  ? "border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                  : "border-red-200 bg-red-50 opacity-80 dark:border-red-900/50 dark:bg-gray-800"
+              }`}
+            >
+              <div>
+                <div className="mb-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-purple-600 dark:text-purple-400">
+                    {feed.expert_type}
+                  </span>
+                  <span>
+                    {feed.created_at
+                      ? format(new Date(feed.created_at), "yyyy-MM-dd HH:mm")
+                      : "-"}
+                  </span>
+                </div>
+                <p className="mb-4 line-clamp-4 text-sm text-gray-800 dark:text-gray-200">
+                  "{feed.content}"
+                </p>
+                <div className="text-xs font-medium text-gray-500">
+                  작성자: {author.nickname || "익명"}
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between border-t pt-4 dark:border-gray-700">
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                    feed.is_public
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  }`}
+                >
+                  {feed.is_public ? "공개 상태" : "숨김 처리됨"}
+                </span>
+
+                <Button
+                  variant={feed.is_public ? "outline" : "default"}
+                  size="sm"
+                  className={
+                    feed.is_public
+                      ? "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400"
+                      : "bg-green-600 text-white hover:bg-green-700"
+                  }
+                  onClick={() => toggleVisibility(feed.id, feed.is_public)}
+                >
+                  {feed.is_public ? (
+                    <>
+                      <EyeOff className="mr-1.5 h-3.5 w-3.5" /> 강제 숨김
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="mr-1.5 h-3.5 w-3.5" /> 공개 복원
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          );
+        })}
         {filteredFeeds.length === 0 && (
           <div className="col-span-full py-12 text-center text-gray-500">
             조건에 맞는 피드 게시물이 없습니다.
