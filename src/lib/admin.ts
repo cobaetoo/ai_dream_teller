@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
  * 권한이 확인된 사용자 정보를 반환합니다.
  */
 export async function verifyAdmin() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

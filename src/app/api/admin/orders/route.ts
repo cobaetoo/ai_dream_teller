@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const offset = (page - 1) * limit;
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Supabase의 Join을 활용하여 orders, profiles(or guests), dreams의 요약을 함께 가져올 수 있음
   // 단, orders 테이블이 profiles_id와 guests_id를 가지고 있으므로 둘 중 하나를 엮어 유저 정보를 보여줍니다.

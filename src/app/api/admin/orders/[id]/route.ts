@@ -17,7 +17,7 @@ export async function GET(
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Retrieve complete order details
   const { data: order, error } = await supabase

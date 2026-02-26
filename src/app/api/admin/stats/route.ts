@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const [
     { count: profilesCount },
@@ -22,7 +22,7 @@ export async function GET() {
     supabase
       .from("orders")
       .select("amount, created_at, status")
-      .eq("status", "PAID"),
+      .eq("status", "DONE"),
     supabase.from("dreams").select("*", { count: "exact", head: true }),
     supabase
       .from("dreams")

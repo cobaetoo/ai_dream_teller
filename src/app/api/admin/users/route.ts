@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const typeFilter = searchParams.get("type") || "all";
 
-  const supabase = createClient();
+  const supabase = await createClient();
   let result: any[] = [];
 
   try {

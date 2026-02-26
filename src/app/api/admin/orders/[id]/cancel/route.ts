@@ -15,7 +15,7 @@ export async function POST(
   const { id } = await params;
   if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: order } = await supabase
     .from("orders")
     .select("payment_key, status, amount")

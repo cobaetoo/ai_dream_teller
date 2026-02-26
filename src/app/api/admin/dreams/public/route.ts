@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 퍼블릭 피드 전체 조회 쿼리 (관리자용 필터 없는 raw 데이터 조회)
   const { data: dreams, error } = await supabase
