@@ -21,8 +21,8 @@ export async function GET(request: Request) {
       analysis_result,
       expert_type,
       created_at,
-      profiles ( email, nickname ),
-      guests ( email, nickname )
+      profiles ( nickname ),
+      guests ( phone )
     `,
     )
     // 여기서 PRD상 퍼블릭 피드 관리라고 했으므로 보통 is_public=true인 글만 가져올수도 있으나,

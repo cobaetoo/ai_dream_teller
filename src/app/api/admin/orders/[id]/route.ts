@@ -20,22 +20,44 @@ export async function GET(
   const supabase = await createClient();
 
   // Retrieve complete order details
-  const { data: order, error } = await supabase
+  const { data: rawOrder, error } = await supabase
     .from("orders")
     .select(
       `
       *,
-      profiles ( email, nickname, id ),
-      guests ( email, nickname, id ),
-      dreams ( * )
+      dreams (
+        user_id,
+        guest_id,
+        content,
+        expert_type,
+        status,
+        analysis_result,
+        image_url,
+        is_public,
+        created_at,
+        profiles ( nickname, id ),
+        guests ( phone, id )
+      )
     `,
     )
     .eq("id", id)
     .single();
 
-  if (error || !order) {
+  if (error || !rawOrder) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
+
+  const d: any = Array.isArray(rawOrder.dreams)
+    ? rawOrder.dreams[0]
+    : rawOrder.dreams;
+  const order = {
+    ...rawOrder,
+    user_id: d?.user_id,
+    guest_id: d?.guest_id,
+    profiles: d?.profiles,
+    guests: d?.guests,
+    dreams: [d],
+  };
 
   return NextResponse.json(order);
 }

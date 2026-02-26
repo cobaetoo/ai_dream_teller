@@ -19,28 +19,39 @@ export async function GET(request: Request) {
       const { data: users, error: userErr } = await supabase.from("profiles")
         .select(`
           id,
-          email,
           nickname,
           created_at,
           role,
-          orders ( amount, status )
+          dreams (
+            orders ( amount, status )
+          )
         `);
 
       if (userErr) throw userErr;
 
       const userMap =
         users?.map((u: any) => {
-          const paidOrders =
-            u.orders?.filter(
-              (o: any) => o.status === "DONE" || o.status === "PAID",
-            ) || [];
+          const paidOrders: any[] = [];
+          if (Array.isArray(u.dreams)) {
+            u.dreams.forEach((d: any) => {
+              if (d.orders) {
+                const oList = Array.isArray(d.orders) ? d.orders : [d.orders];
+                oList.forEach((o: any) => {
+                  if (o.status === "DONE" || o.status === "PAID") {
+                    paidOrders.push(o);
+                  }
+                });
+              }
+            });
+          }
+
           const totalAmount = paidOrders.reduce(
             (sum: number, o: any) => sum + o.amount,
             0,
           );
           return {
             id: u.id,
-            identifier: u.email || u.nickname || u.id,
+            identifier: u.nickname || u.id,
             type: "User",
             created_at: u.created_at,
             paymentCount: paidOrders.length,
@@ -55,27 +66,38 @@ export async function GET(request: Request) {
       const { data: guests, error: guestErr } = await supabase.from("guests")
         .select(`
           id,
-          email,
-          nickname,
+          phone,
           created_at,
-          orders ( amount, status )
+          dreams (
+            orders ( amount, status )
+          )
         `);
 
       if (guestErr) throw guestErr;
 
       const guestMap =
         guests?.map((g: any) => {
-          const paidOrders =
-            g.orders?.filter(
-              (o: any) => o.status === "DONE" || o.status === "PAID",
-            ) || [];
+          const paidOrders: any[] = [];
+          if (Array.isArray(g.dreams)) {
+            g.dreams.forEach((d: any) => {
+              if (d.orders) {
+                const oList = Array.isArray(d.orders) ? d.orders : [d.orders];
+                oList.forEach((o: any) => {
+                  if (o.status === "DONE" || o.status === "PAID") {
+                    paidOrders.push(o);
+                  }
+                });
+              }
+            });
+          }
+
           const totalAmount = paidOrders.reduce(
             (sum: number, o: any) => sum + o.amount,
             0,
           );
           return {
             id: g.id,
-            identifier: g.email || g.nickname || "비회원",
+            identifier: g.phone || "비회원",
             type: "Guest",
             created_at: g.created_at,
             paymentCount: paidOrders.length,
