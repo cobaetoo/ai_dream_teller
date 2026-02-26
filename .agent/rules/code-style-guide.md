@@ -41,3 +41,7 @@ trigger: always_on
 
 - **Safety**: `!important` CSS 사용을 금지한다.
 - **Code Review**: 코드를 제안하기 전에, 잠재적인 메모리 누수나 보안 취약점이 없는지 스스로 검토한다.
+
+# PRD
+
+- **Logging**: PRD에 적힌 내용은 절대 삭제하지 않고 수정 또는 업데이트만 진행한다.
