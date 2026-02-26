@@ -88,26 +88,31 @@ export async function POST(req: Request) {
         );
       }
 
+      // First await Telegram Message to prevent background kill
+      await sendTelegramMessage(
+        `✅ <b>결제 완료</b>\nOrder ID: <code>${orderId}</code>\nAmount: ${amount.toLocaleString()}원`,
+      );
+
       // Background AI generation task
       if (orderData?.dream_id) {
         const protocol = req.headers.get("x-forwarded-proto") || "http";
         const host = req.headers.get("host");
         const baseUrl = `${protocol}://${host}`;
 
-        // Fire and forget
-        fetch(`${baseUrl}/api/dreams/generate`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-          },
-          body: JSON.stringify({ dreamId: orderData.dream_id }),
-        }).catch((err) => console.error("AI trigger error:", err));
+        // Fire and forget, wrap in try/catch to avoid crash before TG
+        try {
+          fetch(`${baseUrl}/api/dreams/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+            body: JSON.stringify({ dreamId: orderData.dream_id }),
+          }).catch((err) => console.error("AI trigger error:", err));
+        } catch (e) {
+          console.error("Fetch throw", e);
+        }
       }
-
-      await sendTelegramMessage(
-        `✅ <b>결제 완료</b>\nOrder ID: <code>${orderId}</code>\nAmount: ${amount.toLocaleString()}원`,
-      );
 
       return NextResponse.json({
         success: true,

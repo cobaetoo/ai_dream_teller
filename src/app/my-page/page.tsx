@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,44 +30,44 @@ interface UserData {
   created_at?: string;
 }
 
-// Mock Recent History
-const RECENT_DREAMS = [
-  {
-    id: "ORDER_12345",
-    title: "무의식의 숲과 인도자",
-    date: "2025.12.17",
-    type: "Jung",
-  },
-  {
-    id: "ORDER_12111",
-    title: "하늘을 나는 고래",
-    date: "2025.12.15",
-    type: "Shaman",
-  },
-  {
-    id: "ORDER_11999",
-    title: "이가 빠지는 꿈",
-    date: "2025.12.12",
-    type: "Freud",
-  },
-];
+interface MyDream {
+  id: string;
+  created_at: string;
+  content: string;
+  expert_type: string;
+  status: string;
+  analysis_result?: any;
+}
 
 const MyPage = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [dreams, setDreams] = useState<MyDream[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [nickname, setNickname] = useState("");
+  const router = useRouter();
 
   // Fetch User Data
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/users/me");
-        if (res.ok) {
-          const data = await res.json();
+        const [userRes, dreamsRes] = await Promise.all([
+          fetch("/api/users/me"),
+          fetch("/api/dreams?type=my"),
+        ]);
+
+        if (userRes.ok) {
+          const data = await userRes.json();
           if (data.user) {
             setUserData(data.user);
             setNickname(data.user.nickname); // Init input value
+          }
+        }
+
+        if (dreamsRes.ok) {
+          const data = await dreamsRes.json();
+          if (data.success && data.dreams) {
+            setDreams(data.dreams);
           }
         }
       } catch (error) {
@@ -206,27 +207,52 @@ const MyPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {RECENT_DREAMS.map((item) => (
-                    <div
-                      key={item.id}
-                      className="group flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-purple-200 hover:shadow-md transition-all cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-2xl group-hover:bg-purple-50 transition-colors">
-                          🔮
+                  {dreams.slice(0, 5).map((item) => {
+                    const viewTitle =
+                      item.status === "PENDING"
+                        ? "💡 AI 꿈 해석이 진행 중입니다..."
+                        : item.analysis_result?.title || "해석 완료된 꿈";
+
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() =>
+                          router.push(
+                            item.status === "COMPLETED"
+                              ? `/dream-result/${item.id}`
+                              : "#",
+                          )
+                        }
+                        className="group flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:border-purple-200 hover:shadow-md transition-all cursor-pointer"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl transition-colors ${item.status === "PENDING" ? "bg-amber-50" : "bg-slate-100 group-hover:bg-purple-50"}`}
+                          >
+                            {item.status === "PENDING" ? "⏳" : "🔮"}
+                          </div>
+                          <div>
+                            <h4
+                              className={`font-bold transition-colors ${item.status === "PENDING" ? "text-amber-600" : "text-slate-900 group-hover:text-purple-700"}`}
+                            >
+                              {viewTitle}
+                            </h4>
+                            <p className="text-sm text-slate-500">
+                              {new Date(item.created_at).toLocaleDateString()} •{" "}
+                              {item.expert_type} 분석
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-                            {item.title}
-                          </h4>
-                          <p className="text-sm text-slate-500">
-                            {item.date} • {item.type} 분석
-                          </p>
-                        </div>
+                        <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-purple-400" />
                       </div>
-                      <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-purple-400" />
+                    );
+                  })}
+
+                  {dreams.length === 0 && (
+                    <div className="text-center text-slate-500 py-8">
+                      아직 꿈 해몽 기록이 없습니다.
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="mt-6 text-center">
                   <Button variant="outline" className="w-full">

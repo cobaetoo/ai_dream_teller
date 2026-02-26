@@ -1,39 +1,23 @@
 import React from "react";
 import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { Button } from "@/components/ui/button";
-import { faker } from "@faker-js/faker";
+import { createClient } from "@/lib/supabase/server";
 
-// Generate Mock Data using Faker JS
-const generateFeedItem = (id: string, index: number) => {
-  // 홀수번째 아이템마다 이미지를 넣습니다 (1, 3, 5...) - 0-indexed이므로 i % 2 !== 0
-  const hasImage = index % 2 !== 0; // 홀수 인덱스(두번째, 네번째..)가 아니라 '홀수 아이템'을 뜻한다면 0, 2, 4 (1번째, 3번째..)가 되어야 함.
-  // 1. "홀수 아이템마다" -> 1st(i=0), 3rd(i=2), 5th(i=4) ... has Image
-  // 2. "짝수 아이템" -> 2nd(i=1), 4th(i=3) ... No Image
+export const dynamic = "force-dynamic";
 
-  // Requirement: "홀수 아이템마다 ... 이미지를 넣어줘"
-  // If we count starting from 1: 1, 3, 5... have images. (Indices 0, 2, 4...)
-  const showImage = index % 2 === 0;
+const FeedsPage = async () => {
+  const supabase = await createClient();
+  const { data: dreams } = await supabase
+    .from("dreams")
+    .select(
+      "id, content, expert_type, analysis_result, image_url, created_at, profiles(nickname)",
+    )
+    .eq("is_public", true)
+    .eq("status", "COMPLETED")
+    .order("created_at", { ascending: false })
+    .limit(50);
 
-  return {
-    orderId: id,
-    imageUrl: showImage ? `https://picsum.photos/seed/${id}/800/450` : null,
-    title: faker.lorem.sentence(4), // Random sentence
-    dreamContent: faker.lorem.paragraph(3), // User's dream
-    interpretationContent: faker.lorem.paragraphs(2), // AI Interpretation
-    expertType: faker.helpers.arrayElement([
-      "Freud",
-      "Jung",
-      "Shaman",
-      "Neuroscience",
-    ]),
-  };
-};
-
-const FEED_ITEMS = Array.from({ length: 10 }).map((_, i) =>
-  generateFeedItem(i.toString(), i)
-);
-
-const FeedsPage = () => {
+  const feedItems = dreams || [];
   return (
     <div className="min-h-screen bg-slate-100 py-12 md:py-20">
       <div className="container px-4 max-w-2xl mx-auto">
@@ -63,16 +47,28 @@ const FeedsPage = () => {
         </div>
         {/* Feed List (Single Column) */}
         <div className="flex flex-col gap-8">
-          {FEED_ITEMS.map((item) => (
-            <DreamFeedCard
-              key={item.orderId}
-              imageUrl={item.imageUrl}
-              title={item.title}
-              dreamContent={item.dreamContent}
-              interpretationContent={item.interpretationContent}
-              expertType={item.expertType}
-            />
-          ))}
+          {feedItems.map((item) => {
+            const analysis = item.analysis_result as any;
+            return (
+              <DreamFeedCard
+                key={item.id}
+                imageUrl={item.image_url}
+                title={analysis?.title || "분석 완료된 꿈"}
+                dreamContent={item.content}
+                interpretationContent={
+                  analysis?.analysis || "해석을 불러올 수 없습니다."
+                }
+                expertType={item.expert_type}
+              />
+            );
+          })}
+          {feedItems.length === 0 && (
+            <div className="text-center py-20 text-slate-500">
+              아직 모두에게 공유된 꿈 해석이 없습니다.
+              <br />
+              여러분의 꿈을 가장 먼저 공유해보세요!
+            </div>
+          )}
         </div>
         {/* Load More Trigger */}
         <div className="mt-16 flex justify-center">

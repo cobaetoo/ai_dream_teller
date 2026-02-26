@@ -48,9 +48,9 @@ const SuccessPageContent = () => {
 
         if (response.ok) {
           setStatus("success");
-          // 결제 승인 완료 후 결과 페이지로 이동
+          // 결제 승인 완료 후 결제 목록 페이지로 이동
           setTimeout(() => {
-            router.push(`/dream-result/${orderId}?paymentKey=${paymentKey}`);
+            router.push(`/my-page`);
           }, 2000);
         } else {
           const errorData = await response.json();

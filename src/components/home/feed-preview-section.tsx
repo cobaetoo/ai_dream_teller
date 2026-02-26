@@ -4,40 +4,22 @@ import { Button } from "@/components/ui/button";
 import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { ArrowRight } from "lucide-react";
 
-const STATIC_FEED_ITEMS = [
-  {
-    orderId: "preview-1",
-    imageUrl: "https://picsum.photos/seed/ocean/800/450",
-    title: "깊은 바다속을 헤엄치는 꿈",
-    dreamContent:
-      "아주 깊고 푸른 바다속이었는데, 숨을 쉬는 게 전혀 힘들지 않았어요. 오히려 물고기처럼 자유롭게 유영하며 고대 유적 같은 곳을 발견했습니다.",
-    interpretationContent:
-      "물은 무의식을 상징합니다. 깊은 바다를 편안하게 헤엄치는 것은 당신이 자신의 무의식 세계를 탐구할 준비가 되었음을 의미하며, 평소 억눌러왔던 잠재력을 발견할 기회입니다.",
-    expertType: "Jung",
-  },
-  {
-    orderId: "preview-2",
-    imageUrl: null,
-    title: "이빨이 우수수 빠지는 꿈",
-    dreamContent:
-      "거울을 보고 있었는데, 갑자기 앞니 하나가 흔들리더니 입안의 모든 치아가 우수수 쏟아져 내렸습니다. 너무 놀라 소리를 지르다 깼어요.",
-    interpretationContent:
-      "치아가 빠지는 꿈은 주로 신변의 변화나 상실에 대한 불안을 나타냅니다. 현재 겪고 있는 스트레스 상황이나, 자신감의 저하를 겪고 있지 않은지 돌아볼 필요가 있습니다.",
-    expertType: "Freud",
-  },
-  {
-    orderId: "preview-3",
-    imageUrl: "https://picsum.photos/seed/skywhale/800/450",
-    title: "도시 위를 나는 거대한 고래",
-    dreamContent:
-      "해질 무렵의 보랏빛 하늘 위로, 빌딩보다 더 큰 고래가 천천히 날아가고 있었습니다. 저는 옥상에서 그 모습을 경이롭게 바라보았습니다.",
-    interpretationContent:
-      "거대한 고래는 압도적인 힘이나 운명을 상징하지만, 하늘을 나는 비현실적인 상황은 자유에 대한 강한 갈망을 나타냅니다. 답답한 현실에서 벗어나고 싶은 소망이 투영되었습니다.",
-    expertType: "Shaman",
-  },
-];
+import { createClient } from "@/lib/supabase/server";
 
-const FeedPreviewSection = () => {
+interface FeedPreviewProps {}
+
+const FeedPreviewSection = async () => {
+  const supabase = await createClient();
+  const { data: dreams } = await supabase
+    .from("dreams")
+    .select("id, content, expert_type, analysis_result, image_url, created_at")
+    .eq("is_public", true)
+    .eq("status", "COMPLETED")
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  const feedItems = dreams || [];
+
   return (
     <section className="container py-24 px-4">
       <div className="mb-12 flex flex-col items-center text-center">
@@ -50,17 +32,27 @@ const FeedPreviewSection = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {STATIC_FEED_ITEMS.map((item) => (
-          <DreamFeedCard
-            key={item.orderId}
-            imageUrl={item.imageUrl}
-            title={item.title}
-            dreamContent={item.dreamContent}
-            interpretationContent={item.interpretationContent}
-            expertType={item.expertType}
-            className="h-full" // Ensure cards are same height if possible, though expanding content makes it vary
-          />
-        ))}
+        {feedItems.map((item) => {
+          const analysis = item.analysis_result as any;
+          return (
+            <DreamFeedCard
+              key={item.id}
+              imageUrl={item.image_url}
+              title={analysis?.title || "해부 중인 꿈"}
+              dreamContent={item.content}
+              interpretationContent={
+                analysis?.analysis || "내용을 불러올 수 없습니다."
+              }
+              expertType={item.expert_type}
+              className="h-full"
+            />
+          );
+        })}
+        {feedItems.length === 0 && (
+          <p className="col-span-full text-center text-slate-500 py-10">
+            아직 공개된 꿈 해몽 정보가 없습니다. 첫 해몽의 주인공이 되어보세요!
+          </p>
+        )}
       </div>
 
       <div className="mt-12 text-center">

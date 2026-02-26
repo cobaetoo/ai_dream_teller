@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         break;
     }
 
-    const prompt = `다음은 사용자가 꾼 꿈의 내용입니다. 이 꿈의 핵심 상징들을 분석하고, 심리적/상징적 의미를 담아 해몽해주세요.\n\n[꿈 내용]:\n${dreamData.content}\n\n결과는 반드시 다음 JSON 포맷을 엄격하게 지켜주세요: {"title": "꿈의 핵심을 요약한 한 줄 제목", "symbols": ["상징1", "상징2", "상징3"], "analysis": "해몽 결과 본문 (3~4문단)"}`;
+    const prompt = `다음은 사용자가 꾼 꿈의 내용입니다. 이 꿈의 핵심 상징들을 분석하고, 심리적/상징적 의미를 담아 반드시 한국어(Korean)로 해몽해주세요.\n\n[꿈 내용]:\n${dreamData.content}\n\n결과는 반드시 다음 JSON 포맷을 엄격하게 지켜주세요: {"title": "꿈의 핵심을 요약한 한 줄 제목(한국어)", "symbols": ["상징1(한국어)", "상징2", "상징3"], "analysis": "해몽 결과 본문 (3~4문단, 한국어)"}`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
