@@ -73,3 +73,67 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const type = searchParams.get("type"); // "feed" | "my"
+
+    const supabase = await createClient();
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    const {
+      data: { user },
+    } = token
+      ? await supabase.auth.getUser(token)
+      : await supabase.auth.getUser();
+
+    if (type === "my") {
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const { data: dreams, error } = await supabase
+        .from("dreams")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("My dreams fetch error:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch dreams" },
+          { status: 500 },
+        );
+      }
+      return NextResponse.json({ success: true, dreams });
+    }
+
+    if (type === "feed") {
+      const { data: dreams, error } = await supabase
+        .from("dreams")
+        .select("*, profiles(nickname)")
+        .eq("is_public", true)
+        .eq("status", "COMPLETED")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Feed dreams fetch error:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch dreams" },
+          { status: 500 },
+        );
+      }
+      return NextResponse.json({ success: true, dreams });
+    }
+
+    return NextResponse.json(
+      { success: false, error: "Invalid type parameter" },
+      { status: 400 },
+    );
+  } catch (error: any) {
+    console.error("Dreams GET error:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}

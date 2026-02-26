@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 export async function POST(req: Request) {
+  let currentOrderId: string | undefined;
+
   try {
     const body = await req.json();
     const { paymentKey, orderId, amount } = body;
+    currentOrderId = orderId;
 
     const widgetSecretKey = process.env.TOSS_SECRET_KEY;
     if (!widgetSecretKey) {
@@ -101,6 +105,10 @@ export async function POST(req: Request) {
         }).catch((err) => console.error("AI trigger error:", err));
       }
 
+      await sendTelegramMessage(
+        `✅ <b>결제 완료</b>\nOrder ID: <code>${orderId}</code>\nAmount: ${amount.toLocaleString()}원`,
+      );
+
       return NextResponse.json({
         success: true,
         data,
@@ -108,12 +116,21 @@ export async function POST(req: Request) {
       });
     } else {
       const errorData = await response.json();
+
+      await sendTelegramMessage(
+        `❌ <b>결제 실패 (토스 API)</b>\nOrder ID: <code>${orderId}</code>\nError: ${errorData.message || errorData.code || "Unknown error"}`,
+      );
+
       return NextResponse.json(
         { success: false, error: errorData },
         { status: response.status },
       );
     }
   } catch (error: any) {
+    await sendTelegramMessage(
+      `🚨 <b>결제 라우트 시스템 에러</b>\nOrder ID: <code>${currentOrderId || "Unknown"}</code>\nError: ${error.message}`,
+    );
+
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 },

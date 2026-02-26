@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { GoogleGenAI } from "@google/genai";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 export async function POST(req: Request) {
+  let currentDreamId: string | undefined;
+
   try {
     // 1. Internal Auth Check
     const authHeader = req.headers.get("authorization");
@@ -11,6 +14,8 @@ export async function POST(req: Request) {
     }
 
     const { dreamId } = await req.json();
+    currentDreamId = dreamId;
+
     if (!dreamId) {
       return NextResponse.json({ error: "Missing dreamId" }, { status: 400 });
     }
@@ -81,20 +86,27 @@ export async function POST(req: Request) {
       throw updateError;
     }
 
+    await sendTelegramMessage(
+      `🌟 <b>꿈 해석 완료</b>\nDream ID: <code>${dreamId}</code>\n전문가: ${dreamData.expert_type}`,
+    );
+
     return NextResponse.json({ success: true, dreamId });
   } catch (error: any) {
     console.error("AI Generation Error:", error);
 
     // Attempt to update status to FAILED
     try {
-      const body = await req.json().catch(() => ({}));
-      if (body.dreamId) {
+      if (currentDreamId) {
         createAdminClient()
           .from("dreams")
           .update({ status: "FAILED" })
-          .eq("id", body.dreamId);
+          .eq("id", currentDreamId);
       }
     } catch (e) {}
+
+    await sendTelegramMessage(
+      `🚨 <b>꿈 해석 생성 서버 에러</b>\nDream ID: <code>${currentDreamId || "Unknown"}</code>\nError: ${error.message}`,
+    );
 
     return NextResponse.json(
       { success: false, error: error.message },
