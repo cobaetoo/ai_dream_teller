@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { ArrowRight } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface FeedPreviewProps {}
 
 const FeedPreviewSection = async () => {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: dreams } = await supabase
     .from("dreams")
     .select("id, content, expert_type, analysis_result, image_url, created_at")

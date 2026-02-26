@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTelegramMessage } from "@/lib/telegram";
 
@@ -99,8 +99,8 @@ export async function POST(req: Request) {
         const host = req.headers.get("host");
         const baseUrl = `${protocol}://${host}`;
 
-        // Fire and forget, wrap in try/catch to avoid crash before TG
-        try {
+        // Fire and forget safely using after() to prevent Vercel process freeze
+        after(() => {
           fetch(`${baseUrl}/api/dreams/generate`, {
             method: "POST",
             headers: {
@@ -109,9 +109,7 @@ export async function POST(req: Request) {
             },
             body: JSON.stringify({ dreamId: orderData.dream_id }),
           }).catch((err) => console.error("AI trigger error:", err));
-        } catch (e) {
-          console.error("Fetch throw", e);
-        }
+        });
       }
 
       return NextResponse.json({

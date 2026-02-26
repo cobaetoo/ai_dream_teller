@@ -1,12 +1,12 @@
 import React from "react";
 import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 const FeedsPage = async () => {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: dreams } = await supabase
     .from("dreams")
     .select(
