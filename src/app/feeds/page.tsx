@@ -1,19 +1,41 @@
 import React from "react";
+import Link from "next/link";
 import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { Button } from "@/components/ui/button";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-const FeedsPage = async () => {
+const CATEGORIES = [
+  { name: "전체", value: "" },
+  { name: "프로이트", value: "FREUD" },
+  { name: "칼 융", value: "JUNG" },
+  { name: "무속/예지몽", value: "SHAMAN" },
+  { name: "뇌과학", value: "NEUROSCIENCE" },
+];
+
+const FeedsPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) => {
+  const params = await searchParams;
+  const currentCategory = (params.expert as string) || "";
+
   const supabase = createAdminClient();
-  const { data: dreams } = await supabase
+  let query = supabase
     .from("dreams")
     .select(
       "id, content, expert_type, analysis_result, image_url, created_at, profiles(nickname)",
     )
     .eq("is_public", true)
-    .eq("status", "COMPLETED")
+    .eq("status", "COMPLETED");
+
+  if (currentCategory) {
+    query = query.eq("expert_type", currentCategory);
+  }
+
+  const { data: dreams } = await query
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -33,16 +55,23 @@ const FeedsPage = async () => {
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {["전체", "프로이트", "칼 융", "예지몽", "악몽"].map((tag) => (
-              <Button
-                key={tag}
-                variant={tag === "전체" ? "default" : "outline"}
-                size="sm"
-                className="rounded-full bg-white hover:bg-slate-50"
-              >
-                {tag}
-              </Button>
-            ))}
+            {CATEGORIES.map((tag) => {
+              const isActive = currentCategory === tag.value;
+              return (
+                <Link
+                  key={tag.name}
+                  href={tag.value ? `/feeds?expert=${tag.value}` : "/feeds"}
+                >
+                  <Button
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    className={`rounded-full transition-colors ${!isActive && "bg-white"}`}
+                  >
+                    {tag.name}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
         </div>
         {/* Feed List (Single Column) */}
