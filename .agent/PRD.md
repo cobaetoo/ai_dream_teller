@@ -91,7 +91,8 @@
 | **Dream & Payment**      | `Request Flow` | 꿈 해몽 요청 -> `/payments` 진입 확인                                         | ✅ Pass | 쿼리 파라미터 전달 및 이동 정상                                               |
 |                          | `Payment Page` | 결제 페이지(영수증 UI) 렌더링 및 토스 페이먼츠 위젯 로드 확인                 | ✅ Pass | 토스 페이먼츠 API 인증키 수정 및 연동 완료                                    |
 |                          | `Payment Flow` | 카드 결제 시뮬레이션 -> 성공 페이지(`/payments/success`) 검증                 | ✅ Pass | API 키 정상 인식 및 `/api/payments/confirm` 연동을 통한 결제 성공 플로우 완비 |
-| **Community**            | `Feeds`        | `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트(무한 스크롤) 로딩 확인            | ✅ Pass | 무한 스크롤 정상 작동 (Content: Lorem Ipsum)                                  |
+|                          | `Dream Result` | `/dream-result/[id]` 접속 -> DB 연동 및 실제 AI 해몽 완료 데이터 렌더링 검증  | ✅ Pass | Mock 데이터 제거 및 DB 기반 해몽 내용 및 해시태그 렌더링 정상 완료 확인       |
+| **Community**            | `Feeds`        | `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트 및 전문가별 필터링 작동 확인      | ✅ Pass | 더미 텍스트 제거, 실제 DB 데이터 렌더링 및 `?expert=` 필터링 쿼리 작동 정상   |
 
 ## 6. Admin UX Flow & Layout (관리자 페이지)
 

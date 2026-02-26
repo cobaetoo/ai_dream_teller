@@ -11,23 +11,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
-
-// Mock Data Helper
-const getMockResult = (id: string) => {
-  return {
-    id,
-    userDream:
-      "어제 밤에 아주 깊은 숲속을 걷는 꿈을 꾸었습니다. 안개가 자욱했고, 나무들이 마치 살아서 움직이는 것 같았어요. 갑자기 늑대 한 마리가 나타나 저를 빤히 쳐다보다가 길을 안내하듯 앞장섰습니다. 그 늑대를 따라가다 보니 오래된 사원이 나왔고, 그 안에서 빛나는 보석을 발견했습니다.",
-    interpretation: {
-      summary: "무의식의 인도와 내면의 지혜 발견",
-      fullText:
-        "숲은 당신의 무의식 세계를 상징합니다. 짙은 안개는 현재 당신이 미래에 대해 느끼는 불확실성을 나타내지만, 늑대라는 '인도자(Guide)'의 등장은 당신의 직관이 깨어나고 있음을 의미합니다.\n\n늑대가 안내한 오래된 사원은 당신의 내면에 잠들어 있는 깊은 지혜나 영적인 공간을 상징합니다. 그리고 그곳에서 발견한 '빛나는 보석'은 당신이 곧 발견하게 될 새로운 재능이나 깨달음, 혹은 해결책을 암시합니다. \n\n이 꿈은 두려워하지 말고 자신의 직관을 믿고 나아가라는 긍정적인 메시지를 담고 있습니다.",
-      keywords: ["무의식", "직관", "지혜", "발견"],
-    },
-    imageUrl: `https://picsum.photos/seed/${id}/1024/1024`,
-    date: new Date().toLocaleDateString(),
-  };
-};
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface PageProps {
   params: Promise<{ "order-id": string }>;
@@ -36,7 +20,37 @@ interface PageProps {
 export default async function DreamResultPage({ params }: PageProps) {
   const resolvedParams = await params;
   const orderId = resolvedParams["order-id"];
-  const data = getMockResult(orderId);
+
+  const supabase = createAdminClient();
+  const { data: dream, error } = await supabase
+    .from("dreams")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+
+  if (error || !dream) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20">
+        <div className="text-center text-slate-500">
+          존재하지 않거나 삭제된 꿈 해석입니다.
+        </div>
+      </div>
+    );
+  }
+
+  const analysis = (dream.analysis_result as any) || {};
+  const data = {
+    id: dream.id,
+    userDream: dream.content,
+    interpretation: {
+      summary: analysis.title || "AI 꿈 해석 결과",
+      fullText: analysis.analysis || "분석 결과를 불러오는 중...",
+      keywords: (analysis.symbols || []) as string[],
+    },
+    imageUrl:
+      dream.image_url || `https://picsum.photos/seed/${dream.id}/1024/1024`,
+    date: new Date(dream.created_at).toLocaleDateString(),
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 md:py-20">
