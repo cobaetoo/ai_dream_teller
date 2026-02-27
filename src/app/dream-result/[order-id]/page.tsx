@@ -13,8 +13,45 @@ import {
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+import { Metadata } from "next";
+
 interface PageProps {
   params: Promise<{ "order-id": string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const orderId = resolvedParams["order-id"];
+
+  const supabase = createAdminClient();
+  const { data: dream } = await supabase
+    .from("dreams")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+
+  if (!dream) {
+    return {
+      title: "해석 결과를 찾을 수 없습니다 | AI Dream Teller",
+    };
+  }
+
+  const analysis = (dream.analysis_result as any) || {};
+  const title = analysis.title || "AI 꿈 해석 결과";
+  const interpretation =
+    analysis.analysis?.substring(0, 150) || "무의식의 메시지를 확인하세요.";
+
+  return {
+    title: `${title} | AI Dream Teller`,
+    description: interpretation,
+    openGraph: {
+      title: `${title} | AI Dream Teller`,
+      description: interpretation,
+      images: [dream.image_url || "/og-image.png"],
+    },
+  };
 }
 
 export default async function DreamResultPage({ params }: PageProps) {
