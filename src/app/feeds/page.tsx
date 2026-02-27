@@ -4,7 +4,8 @@ import { DreamFeedCard } from "@/components/feeds/dream-feed-card";
 import { Button } from "@/components/ui/button";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const dynamic = "force-dynamic";
+// 60초 동안 캐시를 유지하여 DB 부하를 줄이고 응답 속도를 향상시킵니다.
+export const revalidate = 60;
 
 const CATEGORIES = [
   { name: "전체", value: "" },
