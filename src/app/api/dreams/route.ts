@@ -78,6 +78,8 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type"); // "feed" | "my"
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const lastCreatedAt = searchParams.get("lastCreatedAt");
 
     const supabase = await createClient();
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
@@ -91,11 +93,18 @@ export async function GET(req: Request) {
       if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      const { data: dreams, error } = await supabase
+      let query = supabase
         .from("dreams")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (lastCreatedAt) {
+        query = query.lt("created_at", lastCreatedAt);
+      }
+
+      const { data: dreams, error } = await query;
 
       if (error) {
         console.error("My dreams fetch error:", error);
@@ -108,12 +117,19 @@ export async function GET(req: Request) {
     }
 
     if (type === "feed") {
-      const { data: dreams, error } = await supabase
+      let query = supabase
         .from("dreams")
         .select("*, profiles(nickname)")
         .eq("is_public", true)
         .eq("status", "COMPLETED")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      if (lastCreatedAt) {
+        query = query.lt("created_at", lastCreatedAt);
+      }
+
+      const { data: dreams, error } = await query;
 
       if (error) {
         console.error("Feed dreams fetch error:", error);
