@@ -65,6 +65,7 @@ export const DreamTellerForm = () => {
   const handleOptionSelect = (id: string) => setSelectedOption(id);
 
   const handleSubmit = async () => {
+    if (isLoading) return;
     if (!dreamContent.trim()) {
       alert("꿈 내용을 입력해주세요!");
       return;

@@ -45,6 +45,7 @@ const MyPage = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [nickname, setNickname] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
   const router = useRouter();
 
   // Fetch User Data
@@ -80,6 +81,8 @@ const MyPage = () => {
   }, []);
 
   const handleSaveNickname = async () => {
+    if (isUpdating) return;
+    setIsUpdating(true);
     try {
       const res = await fetch("/api/users/me", {
         method: "PATCH",
@@ -96,6 +99,8 @@ const MyPage = () => {
       setIsEditing(false);
     } catch (error) {
       alert("닉네임 변경에 실패했습니다.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -143,8 +148,9 @@ const MyPage = () => {
                         size="sm"
                         onClick={handleSaveNickname}
                         className="h-8 px-2"
+                        disabled={isUpdating}
                       >
-                        저장
+                        {isUpdating ? "..." : "저장"}
                       </Button>
                     </div>
                   ) : (
