@@ -91,7 +91,7 @@ export default async function DreamResultPage({ params }: PageProps) {
               </div>
 
               {/* Image Visualization */}
-              <div className="relative w-full aspect-video md:aspect-[2/1] bg-slate-100">
+              <div className="relative w-full aspect-video md:aspect-2/1 bg-slate-100">
                 <Image
                   src={data.imageUrl}
                   alt="Dream Visualization"
@@ -162,7 +162,7 @@ export default async function DreamResultPage({ params }: PageProps) {
             <DreamCalendar />
 
             {/* More Dreams CTA Card */}
-            <div className="p-6 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl text-white shadow-lg">
+            <div className="p-6 bg-linear-to-br from-purple-500 to-blue-600 rounded-2xl text-white shadow-lg">
               <h3 className="font-bold text-lg mb-2">더 많은 꿈을 꾸셨나요?</h3>
               <p className="text-purple-100 text-sm mb-4">
                 매일의 꿈을 기록하고 무의식의 패턴을 발견해보세요.

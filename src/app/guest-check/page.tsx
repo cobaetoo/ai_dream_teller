@@ -36,7 +36,7 @@ export default async function GuestCheckPage() {
 
       <div className="w-full max-w-2xl mx-auto px-6 z-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-purple-600 to-blue-600 mb-2">
             비회원 주문 조회
           </h1>
           <p className="text-slate-600">

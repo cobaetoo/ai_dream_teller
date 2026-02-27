@@ -30,7 +30,7 @@ export default function OrderList({ orders }: OrderListProps) {
             당신의 무의식을 탐험해보세요.
           </p>
           <Link href="/dream-teller">
-            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+            <Button className="bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
               꿈 해몽하러 가기
             </Button>
           </Link>

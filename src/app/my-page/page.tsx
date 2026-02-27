@@ -125,7 +125,7 @@ const MyPage = () => {
             {/* Profile Card */}
             <Card className="border-slate-100 shadow-sm">
               <CardHeader className="text-center pb-2">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-20 h-20 bg-linear-to-br from-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {userData.nickname[0]}
                 </div>
                 <div className="flex items-center justify-center gap-2">

@@ -67,7 +67,7 @@ export default function GuestLoginForm() {
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-white/50 text-center">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-purple-600 to-blue-600">
           비회원 조회
         </h1>
         <p className="mt-3 text-slate-600">
@@ -126,7 +126,7 @@ export default function GuestLoginForm() {
 
           <Button
             type="submit"
-            className="w-full h-11 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
+            className="w-full h-11 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
             disabled={isPending}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

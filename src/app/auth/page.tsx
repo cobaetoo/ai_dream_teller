@@ -51,7 +51,7 @@ const AuthPage = () => {
       <div className="w-full max-w-md px-6 z-10">
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-white/50 text-center">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-purple-600 to-blue-600">
               환영합니다
             </h1>
             <p className="mt-3 text-slate-600">

@@ -195,7 +195,7 @@ export const DreamTellerForm = () => {
 
         <Button
           size="lg"
-          className="w-full h-14 text-lg bg-gradient-to-r from-purple-600 to-blue-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all font-bold disabled:opacity-70"
+          className="w-full h-14 text-lg bg-linear-to-r from-purple-600 to-blue-600 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all font-bold disabled:opacity-70"
           onClick={handleSubmit}
           disabled={isLoading}
         >

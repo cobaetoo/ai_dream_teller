@@ -244,7 +244,7 @@ const PaymentPageContent = () => {
         {/* Checkout Summary (Receipt Style) */}
         <div className="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden relative">
           {/* Receipt Decor Top */}
-          <div className="h-2 bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500" />
+          <div className="h-2 bg-linear-to-r from-purple-500 via-blue-500 to-pink-500" />
 
           <div className="p-8 pb-0">
             {/* Plan Switcher */}

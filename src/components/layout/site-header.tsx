@@ -73,7 +73,7 @@ const SiteHeader = ({ user }: SiteHeaderProps) => {
             </SheetTrigger>
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle className="text-left bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+                <SheetTitle className="text-left bg-clip-text text-transparent bg-linear-to-r from-purple-600 to-blue-500">
                   AI Dream Teller
                 </SheetTitle>
               </SheetHeader>
