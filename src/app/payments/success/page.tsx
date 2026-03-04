@@ -49,10 +49,19 @@ const SuccessPageContent = () => {
 
         if (response.ok) {
           setStatus("success");
-          // 결제 승인 완료 후 결제 목록 페이지로 이동
-          setTimeout(() => {
-            router.push(`/my-page`);
-          }, 2000);
+
+          try {
+            const userRes = await fetch("/api/users/me");
+            const isGuest = userRes.status === 401;
+
+            setTimeout(() => {
+              router.push(isGuest ? "/guest-check" : "/my-page");
+            }, 2000);
+          } catch (err) {
+            setTimeout(() => {
+              router.push("/my-page");
+            }, 2000);
+          }
         } else {
           const errorData = await response.json();
           setStatus("error");

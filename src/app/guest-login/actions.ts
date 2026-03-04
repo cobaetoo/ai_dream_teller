@@ -1,22 +1,43 @@
 "use server";
 
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createGuestSession } from "@/lib/auth/guest";
+import bcrypt from "bcryptjs";
+
 export async function guestLoginAction(prevState: any, formData: FormData) {
-  // TODO: Implement actual guest login logic with Supabase
-  // This is a placeholder action
-  const phone = formData.get("phone");
-  const password = formData.get("password");
+  const phone = formData.get("phone") as string;
+  const password = formData.get("password") as string;
 
   if (!phone || !password) {
     return { success: false, message: "전화번호와 비밀번호를 입력해주세요." };
   }
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    const supabase = createAdminClient();
 
-  // Mock success for testing (only if phone is '01012345678')
-  if (phone === "01012345678" && password === "1234") {
-    return { success: true, message: "로그인 성공" };
+    // 1. Find User by Phone
+    const { data: guest, error } = await supabase
+      .from("guests")
+      .select("*")
+      .eq("phone", phone)
+      .single();
+
+    if (error || !guest) {
+      return { success: false, message: "비회원 정보가 존재하지 않습니다." };
+    }
+
+    // 2. Verify Password
+    const isValid = await bcrypt.compare(password, guest.password_hash);
+    if (!isValid) {
+      return { success: false, message: "비밀번호가 일치하지 않습니다." };
+    }
+
+    // 3. Create Session Cookie
+    await createGuestSession(guest.id);
+
+    return { success: true, message: "조회 성공" };
+  } catch (err: any) {
+    console.error("Guest login error:", err);
+    return { success: false, message: "시스템 오류가 발생했습니다." };
   }
-
-  return { success: false, message: "일치하는 정보가 없습니다." };
 }
