@@ -72,7 +72,7 @@ export const DreamTellerForm = () => {
       .then((res) => {
         if (res.ok) {
           res.json().then((data) => {
-            setIsLoggedIn(!!data.user);
+            setIsLoggedIn(data.type === "user");
             setIsAuthChecking(false);
           });
         } else {
