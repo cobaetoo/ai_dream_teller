@@ -52,7 +52,14 @@ const SuccessPageContent = () => {
 
           try {
             const userRes = await fetch("/api/users/me");
-            const isGuest = userRes.status === 401;
+            let isGuest = userRes.status === 401;
+
+            if (userRes.ok) {
+              const data = await userRes.json();
+              if (data.type === "guest") {
+                isGuest = true;
+              }
+            }
 
             setTimeout(() => {
               router.push(isGuest ? "/guest-check" : "/my-page");

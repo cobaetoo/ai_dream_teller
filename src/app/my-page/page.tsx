@@ -60,6 +60,10 @@ const MyPage = () => {
 
         if (userRes.ok) {
           const data = await userRes.json();
+          if (data.type === "guest") {
+            router.push("/guest-check");
+            return;
+          }
           if (data.user) {
             setUserData(data.user);
             setNickname(data.user.nickname); // Init input value

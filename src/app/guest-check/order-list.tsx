@@ -76,7 +76,9 @@ export default function OrderList({ orders }: OrderListProps) {
       {orders.map((order) => (
         <Link
           href={
-            order.status === "COMPLETED" ? `/dream-result/${order.id}` : "#"
+            order.status === "COMPLETED"
+              ? `/dream-result/${order.dreamId}`
+              : "#"
           }
           key={order.id}
           className="block group"
