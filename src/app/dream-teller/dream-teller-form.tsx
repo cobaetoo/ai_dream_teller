@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { SelectableCard } from "@/components/dream-teller/selectable-card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   ArrowRight,
   Brain,
@@ -61,6 +62,29 @@ export const DreamTellerForm = () => {
   const [dreamContent, setDreamContent] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  React.useEffect(() => {
+    fetch("/api/users/me")
+      .then((res) => {
+        if (res.ok) {
+          res.json().then((data) => {
+            setIsLoggedIn(!!data.user);
+            setIsAuthChecking(false);
+          });
+        } else {
+          setIsLoggedIn(false);
+          setIsAuthChecking(false);
+        }
+      })
+      .catch(() => {
+        setIsLoggedIn(false);
+        setIsAuthChecking(false);
+      });
+  }, []);
 
   const handleExpertSelect = (id: string) => setSelectedExpert(id);
   const handleOptionSelect = (id: string) => setSelectedOption(id);
@@ -72,21 +96,35 @@ export const DreamTellerForm = () => {
       return;
     }
 
+    if (!isLoggedIn) {
+      if (!phone.trim() || !password.trim()) {
+        alert("비회원 결제를 위해 전화번호와 비밀번호를 입력해주세요.");
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
       const selectedPrice =
         OPTIONS.find((o) => o.id === selectedOption)?.price || 5900;
 
+      const payload: any = {
+        content: dreamContent,
+        expert_type: selectedExpert.toUpperCase(),
+        amount: selectedPrice,
+        has_image_gen: selectedOption === "premium",
+      };
+
+      if (!isLoggedIn) {
+        payload.phone = phone.trim();
+        payload.password = password.trim();
+      }
+
       const response = await fetch("/api/dreams", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: dreamContent,
-          expert_type: selectedExpert.toUpperCase(),
-          amount: selectedPrice,
-          has_image_gen: selectedOption === "premium",
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -189,6 +227,48 @@ export const DreamTellerForm = () => {
           ))}
         </div>
       </section>
+
+      {/* 4. Guest Info (If not logged in) */}
+      {!isAuthChecking && !isLoggedIn && (
+        <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600 text-sm">
+              4
+            </span>
+            비회원 결제 정보
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                전화번호
+              </label>
+              <Input
+                type="tel"
+                placeholder="010-1234-5678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-12 border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                비밀번호
+              </label>
+              <Input
+                type="password"
+                placeholder="결제 확인용 비밀번호 (4자리 이상) 입력"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 border-slate-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+              />
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-slate-500">
+            * 입력하신 정보는 결제 및 해몽 결과 조회 용도로만 사용되며, 30일 후
+            안전하게 파기됩니다.
+          </p>
+        </section>
+      )}
 
       {/* Caveats & Submit */}
       <div className="space-y-6">

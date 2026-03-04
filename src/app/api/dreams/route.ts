@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
 import { nanoid } from "nanoid";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { content, expert_type, amount, has_image_gen } = body;
+    const { content, expert_type, amount, has_image_gen, phone, password } =
+      body;
 
     if (!content || !expert_type || !amount) {
       return NextResponse.json(
@@ -23,6 +25,65 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
 
+    let finalUserId = user?.id || null;
+    let finalGuestId = null;
+
+    if (!finalUserId) {
+      if (!phone || !password) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "비회원 결제를 위한 전화번호와 비밀번호가 필요합니다.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Check if guest with phone exists
+      const { data: existingGuest } = await supabase
+        .from("guests")
+        .select("id, password_hash")
+        .eq("phone", phone)
+        .single();
+
+      if (existingGuest) {
+        // Verify password
+        const isMatch = await bcrypt.compare(
+          password,
+          existingGuest.password_hash,
+        );
+        if (!isMatch) {
+          return NextResponse.json(
+            {
+              success: false,
+              error:
+                "입력하신 전화번호가 이미 존재하지만 비밀번호가 일치하지 않습니다.",
+            },
+            { status: 401 },
+          );
+        }
+        finalGuestId = existingGuest.id;
+      } else {
+        // Create new guest
+        const guestId = crypto.randomUUID();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const { error: insertError } = await supabase.from("guests").insert({
+          id: guestId,
+          phone,
+          password_hash: hashedPassword,
+        });
+
+        if (insertError) {
+          console.error("Guest creation error:", insertError);
+          return NextResponse.json(
+            { success: false, error: "Failed to create guest record." },
+            { status: 500 },
+          );
+        }
+        finalGuestId = guestId;
+      }
+    }
+
     // 1. 꿈 데이터 생성 (PENDING 상태)
     const { data: dreamData, error: dreamError } = await supabase
       .from("dreams")
@@ -30,7 +91,8 @@ export async function POST(req: Request) {
         content,
         expert_type,
         status: "PENDING",
-        user_id: user?.id || null, // 회원이면 user_id 저장
+        user_id: finalUserId,
+        guest_id: finalGuestId,
         has_image_gen: !!has_image_gen,
       })
       .select("id")

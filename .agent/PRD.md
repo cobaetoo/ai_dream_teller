@@ -94,6 +94,19 @@
 |                          | `Dream Result` | `/dream-result/[id]` 접속 -> DB 연동 및 실제 AI 해몽 완료 데이터 렌더링 검증  | ✅ Pass | Mock 데이터 제거 및 DB 기반 해몽 내용 및 해시태그 렌더링 정상 완료 확인       |
 | **Community**            | `Feeds`        | `/feeds` 접속 -> 공개된 꿈 해몽 카드 리스트 및 전문가별 필터링 작동 확인      | ✅ Pass | 더미 텍스트 제거, 실제 DB 데이터 렌더링 및 `?expert=` 필터링 쿼리 작동 정상   |
 
+### 5.4. Guest Checkout (비회원 결제 UX) 구현 리스트
+
+현재 비회원이 `/dream-teller` 페이지에서 꿈 분석 요청 시 발생하는 `Failed to create dream record.` 에러를 해결하고, 비회원 결제 및 결과 확인을 지원하기 위한 구현 목록입니다. (현재 업데이트만 진행, 구현은 대기)
+| 구분 | 주요 기능 / 화면 | 구현 내용 및 요구사항 | 사용 API / 테이블 | 구현 여부 | E2E 테스트 |
+|---|---|---|---|---|---|
+| **Frontend** | `/dream-teller` 폼 | 비회원 전화번호(`phone`), 비밀번호(`password`) 입력 폼 UI 추가 | - | ✅ 완료 | ✅ 완료 |
+| **Frontend** | API Payload | `POST /api/dreams` 호출 시 비회원 정보(phone, password)를 바디(Body)에 포함 전송 | `POST /api/dreams` | ✅ 완료 | ✅ 완료 |
+| **Backend** | `POST /api/dreams` 로직 분기 | 로그인(Auth) 정보가 없을 경우, 비회원(Guest) 처리 로직으로 분리하여 실행 | `POST /api/dreams` | ✅ 완료 | ✅ 완료 |
+| **Backend** | 비밀번호 보안 모듈 | 전송받은 `password`를 Bcrypt 등 단방향 해싱(Hash) 처리하여 저장 | - | ✅ 완료 | ✅ 완료 |
+| **Backend** | 식별자(Guest) 생성/검증 | `guests` 테이블 레코드 생성. 단, 기존 `phone` 존재 시 본인인증 로직 또는 해당 ID 차용 등 정책 반영 | - | ✅ 완료 | ✅ 완료 |
+| **Backend** | 분석 요청 데이터 연동 | 생성/식별된 `guest_id`를 참조(FK)하여 `dreams` 테이블에 레코드 성공 삽입 (INSERT) | - | ✅ 완료 | ✅ 완료 |
+| **Database** | RLS 및 스키마 권한 설정 | 익명 역할(Anon/Public)에서 `guests` 및 `dreams` 테이블 데이터 삽입 시 RLS가 정상 승인되도록 권한 점검 및 완화 설정 추가 | `guests`, `dreams` | ✅ 완료 | ✅ 완료 |
+
 ## 6. Admin UX Flow & Layout (관리자 페이지)
 
 ### 6.1. Admin Global Layout
