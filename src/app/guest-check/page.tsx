@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import { redirect } from "next/navigation";
 import OrderList from "./order-list";
 import { getGuestOrders } from "./actions";
 
@@ -11,9 +12,11 @@ export const metadata = {
 };
 
 export default async function GuestCheckPage() {
-  // In a real implementation, we would get the phone number from the session/cookie
-  // For now, we use the mock phone number that returns data
-  const orders = await getGuestOrders("01012345678");
+  const guestData = await getGuestOrders();
+
+  if (!guestData) {
+    redirect("/auth");
+  }
 
   return (
     <div className="min-h-screen w-full flex flex-col pt-20 pb-40 bg-slate-50 relative overflow-hidden">
@@ -40,12 +43,14 @@ export default async function GuestCheckPage() {
             비회원 주문 조회
           </h1>
           <p className="text-slate-600">
-            <span className="font-semibold text-slate-800">010-1234-5678</span>{" "}
+            <span className="font-semibold text-slate-800">
+              {guestData.phone}
+            </span>{" "}
             님의 꿈 해몽 요청 내역입니다.
           </p>
         </div>
 
-        <OrderList orders={orders} />
+        <OrderList orders={guestData.orders} />
       </div>
     </div>
   );

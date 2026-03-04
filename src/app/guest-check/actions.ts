@@ -1,4 +1,5 @@
-"use server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyGuestSession } from "@/lib/auth/guest";
 
 export type GuestOrder = {
   id: string;
@@ -9,45 +10,67 @@ export type GuestOrder = {
   expertType: string;
 };
 
-// Mock data for guest orders
-export async function getGuestOrders(phone: string): Promise<GuestOrder[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 800));
+export type GuestData = {
+  phone: string;
+  orders: GuestOrder[];
+};
 
-  // In a real app, we would validate the session/cookie here and fetch from Supabase
-  // const { data } = await supabase.from('orders').select('...')...
+export async function getGuestOrders(): Promise<GuestData | null> {
+  const session = await verifyGuestSession();
 
-  if (phone === "01012345678") {
-    return [
-      {
-        id: "ord_1234567890",
-        dreamId: "dream_001",
-        content:
-          "하늘을 나는 꿈을 꾸었는데, 날개가 돋아나서 구름 위를 자유롭게 날아다녔어요. 아래를 보니 사람들이 조그맣게 보였고 기분이 너무 상쾌했습니다.",
-        status: "COMPLETED",
-        createdAt: "2023-12-18T09:00:00Z",
-        expertType: "FREUD",
-      },
-      {
-        id: "ord_0987654321",
-        dreamId: "dream_002",
-        content:
-          "이빨이 우수수 빠지는 꿈을 꿨어요. 피는 안 났는데 너무 당황스럽고 무서웠습니다. 거울을 보니 잇몸만 남아있었어요.",
-        status: "PENDING",
-        createdAt: "2023-12-17T22:30:00Z",
-        expertType: "JUNG",
-      },
-      {
-        id: "ord_1122334455",
-        dreamId: "dream_003",
-        content:
-          "모르는 사람이 저를 계속 쫓아오는 꿈이었어요. 도망치다가 막다른 골목에 다다랐을 때 잠에서 깼습니다.",
-        status: "FAILED",
-        createdAt: "2023-12-10T14:15:00Z",
-        expertType: "NEURO",
-      },
-    ];
+  if (!session || !session.sub) {
+    return null;
   }
 
-  return [];
+  const supabase = createAdminClient();
+
+  // Get guest phone
+  const { data: guest } = await supabase
+    .from("guests")
+    .select("phone")
+    .eq("id", session.sub)
+    .single();
+
+  // If guest doesn't exist, exit early
+  if (!guest) {
+    return null;
+  }
+
+  // Fetch orders linked to this guest's dreams
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `
+      id,
+      created_at,
+      status,
+      amount,
+      dreams!inner(
+        id,
+        content,
+        status,
+        expert_type,
+        guest_id
+      )
+    `,
+    )
+    .eq("dreams.guest_id", session.sub)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    console.error("Failed to fetch guest orders:", error);
+    return { phone: guest.phone, orders: [] };
+  }
+
+  const mappedOrders = data.map((order: any) => ({
+    id: order.id,
+    dreamId: order.dreams.id,
+    content: order.dreams.content,
+    // Use the dream's analysis status usually, or order status if it failed before analysis
+    status: order.dreams.status,
+    createdAt: order.created_at,
+    expertType: order.dreams.expert_type,
+  }));
+
+  return { phone: guest.phone, orders: mappedOrders };
 }
