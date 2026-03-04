@@ -17,6 +17,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 interface StatsData {
   totalUsers: number;
@@ -41,9 +42,10 @@ export default function AdminDashboardPage() {
 
   if (loading || !stats) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
-      </div>
+      <LoadingScreen
+        fullScreen={false}
+        message="통계 데이터를 불러오는 중입니다..."
+      />
     );
   }
 

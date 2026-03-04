@@ -13,6 +13,7 @@ import {
 import { MoveLeft, RotateCcw, XCircle, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import Image from "next/image";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function AdminOrderDetailPage({
   params,
@@ -84,9 +85,10 @@ export default function AdminOrderDetailPage({
 
   if (loading || !order) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
-      </div>
+      <LoadingScreen
+        fullScreen={false}
+        message="주문 상세 정보를 불러오는 중입니다..."
+      />
     );
   }
 

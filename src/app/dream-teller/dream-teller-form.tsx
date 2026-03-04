@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export const EXPERTS = [
   {
@@ -111,6 +112,12 @@ export const DreamTellerForm = () => {
 
   return (
     <div className="space-y-8">
+      {isLoading && (
+        <LoadingScreen
+          fullScreen={true}
+          message="꿈 분석 모델을 준비하고 있습니다..."
+        />
+      )}
       {/* 1. Expert Selection */}
       <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100">
         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">

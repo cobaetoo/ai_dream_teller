@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function AdminOrderListPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -167,7 +168,10 @@ export default function AdminOrderListPage() {
             {loading && orders.length === 0 && (
               <tr>
                 <td colSpan={7} className="py-10 text-center">
-                  <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+                  <LoadingScreen
+                    fullScreen={false}
+                    message="데이터를 불러오는 중..."
+                  />
                 </td>
               </tr>
             )}

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { EyeOff, Eye, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 // Mock public feeds
 export default function AdminFeedListPage() {
@@ -100,7 +101,10 @@ export default function AdminFeedListPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {feeds.length === 0 && loading && (
           <div className="col-span-full py-12 text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+            <LoadingScreen
+              fullScreen={false}
+              message="피드 데이터를 불러오는 중..."
+            />
           </div>
         )}
         {filteredFeeds.map((feed) => {

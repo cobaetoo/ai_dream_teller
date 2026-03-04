@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 const SuccessPageContent = () => {
   const router = useRouter();
@@ -77,15 +78,7 @@ const SuccessPageContent = () => {
   }, [paymentKey, orderId, amount, router]);
 
   if (status === "loading") {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center bg-slate-50 gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
-        <h2 className="text-xl font-semibold text-slate-800">
-          결제 승인 중입니다...
-        </h2>
-        <p className="text-slate-500">창을 닫지 말고 잠시만 기다려주세요.</p>
-      </div>
-    );
+    return <LoadingScreen fullScreen={true} message="결제 승인 중입니다..." />;
   }
 
   if (status === "error") {
@@ -122,9 +115,7 @@ export default function SuccessPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-        </div>
+        <LoadingScreen fullScreen={true} message="페이지를 여는 중입니다..." />
       }
     >
       <SuccessPageContent />

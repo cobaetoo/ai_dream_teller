@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input"; // Added Input
 import { Badge } from "@/components/ui/badge";
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 // type definition for local state
 interface UserData {
@@ -106,9 +107,10 @@ const MyPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        Loading...
-      </div>
+      <LoadingScreen
+        fullScreen={true}
+        message="사용자 정보를 불러오는 중입니다..."
+      />
     );
   }
 
