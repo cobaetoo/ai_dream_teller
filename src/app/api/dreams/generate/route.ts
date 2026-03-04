@@ -3,6 +3,19 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { GoogleGenAI } from "@google/genai";
 import { sendTelegramMessage } from "@/lib/telegram";
 
+// Google AI SDK types (vibe coding rules: no any)
+interface GoogleImageResponse {
+  generatedImages?: {
+    image?: {
+      imageBytes: string;
+      mimeType: string;
+    };
+  }[];
+}
+
+export const maxDuration = 60; // Allow sufficient time for imagen-4.0 generation
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
   let currentDreamId: string | undefined;
 
@@ -13,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { dreamId } = await req.json();
+    const { dreamId, force = false } = await req.json();
     currentDreamId = dreamId;
 
     if (!dreamId) {
@@ -25,7 +38,7 @@ export async function POST(req: Request) {
     // 2. Fetch Dream Data
     const { data: dreamData, error: fetchError } = await supabase
       .from("dreams")
-      .select("content, expert_type, status")
+      .select("content, expert_type, status, has_image_gen")
       .eq("id", dreamId)
       .single();
 
@@ -33,7 +46,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Dream not found" }, { status: 404 });
     }
 
-    if (dreamData.status === "COMPLETED") {
+    if (dreamData.status === "COMPLETED" && !force) {
       return NextResponse.json({ message: "Already completed" });
     }
 
@@ -72,12 +85,41 @@ export async function POST(req: Request) {
 
     const analysisResult = JSON.parse(outputText);
 
-    // 4. Update Dream DB
+    // 4. (Optional) Generate Image if has_image_gen is true
+    let imageUrl = null;
+    let imageError = null;
+    let imageResponse: GoogleImageResponse | null = null;
+    if (dreamData.has_image_gen) {
+      try {
+        const imagePrompt = `A mystical, dreamlike, and vibrant digital art illustration of the following dream symbols: ${analysisResult.symbols.join(
+          ", ",
+        )}. Theme: ${
+          analysisResult.title
+        }. Style: Aurora gradients background, cinematic lighting, conceptual art.`;
+
+        imageResponse = (await ai.models.generateImages({
+          model: "imagen-4.0-generate-001",
+          prompt: imagePrompt,
+        })) as GoogleImageResponse;
+
+        // Imagen 모델은 generatedImages[0].image.imageBytes 에 이미지를 반환함
+        const firstImg = imageResponse.generatedImages?.[0]?.image;
+        if (firstImg?.imageBytes) {
+          imageUrl = `data:${firstImg.mimeType};base64,${firstImg.imageBytes}`;
+        }
+      } catch (imgError: any) {
+        console.error("Image Generation Failed:", imgError);
+        imageError = imgError.message || "Unknown Imagen Error";
+      }
+    }
+
+    // 5. Update Dream DB
     const { error: updateError } = await supabase
       .from("dreams")
       .update({
         status: "COMPLETED",
         analysis_result: analysisResult,
+        image_url: imageUrl,
       })
       .eq("id", dreamId);
 
@@ -87,17 +129,21 @@ export async function POST(req: Request) {
     }
 
     await sendTelegramMessage(
-      `🌟 <b>꿈 해석 완료</b>\nDream ID: <code>${dreamId}</code>\n전문가: ${dreamData.expert_type}`,
+      `🌟 <b>꿈 해석 완료</b>\nDream ID: <code>${dreamId}</code>\n전문가: ${dreamData.expert_type}${imageUrl ? "\n(이미지 생성됨)" : imageError ? `\n(이미지 에러: ${imageError})` : ""}`,
     );
 
-    return NextResponse.json({ success: true, dreamId });
+    return NextResponse.json({
+      success: true,
+      dreamId,
+      hasImage: !!imageUrl,
+    });
   } catch (error: any) {
     console.error("AI Generation Error:", error);
 
     // Attempt to update status to FAILED
     try {
       if (currentDreamId) {
-        createAdminClient()
+        await createAdminClient()
           .from("dreams")
           .update({ status: "FAILED" })
           .eq("id", currentDreamId);

@@ -201,7 +201,11 @@ const MyPage = () => {
           {/* Right Column: Calendar & History */}
           <div className="lg:col-span-2 space-y-6">
             {/* Calendar Section */}
-            <DreamCalendar />
+            <DreamCalendar
+              dreamDates={dreams
+                .filter((d) => d.status === "COMPLETED")
+                .map((d) => new Date(d.created_at))}
+            />
 
             {/* Recent History List */}
             <Card className="border-slate-100 shadow-sm">

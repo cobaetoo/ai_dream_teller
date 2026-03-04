@@ -26,7 +26,7 @@ export const DreamFeedCard = ({
     <div
       className={cn(
         "group flex flex-col overflow-hidden rounded-3xl bg-white shadow-sm border border-slate-100",
-        className
+        className,
       )}
     >
       {/* 1. Card Header */}
@@ -71,7 +71,7 @@ export const DreamFeedCard = ({
           <Sparkles className="h-5 w-5" />
           <span className="font-bold text-sm">AI Dream Teller 해석</span>
         </div>
-        <div className="prose prose-sm md:prose-base text-slate-600 leading-relaxed">
+        <div className="prose prose-sm md:prose-base text-slate-600 leading-relaxed line-clamp-4">
           <p>{interpretationContent}</p>
         </div>
       </div>

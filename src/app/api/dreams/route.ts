@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { content, expert_type, amount } = body;
+    const { content, expert_type, amount, has_image_gen } = body;
 
     if (!content || !expert_type || !amount) {
       return NextResponse.json(
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
         expert_type,
         status: "PENDING",
         user_id: user?.id || null, // 회원이면 user_id 저장
+        has_image_gen: !!has_image_gen,
       })
       .select("id")
       .single();

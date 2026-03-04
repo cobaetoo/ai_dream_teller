@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,11 @@ interface SiteHeaderProps {
 const SiteHeader = ({ user }: SiteHeaderProps) => {
   const isLoggedIn = !!user;
   const [isOpen, setIsOpen] = React.useState(false);
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { verifyAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -15,8 +14,8 @@ export async function POST(
   const { id } = await params;
   if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
-  const supabase = await createClient();
-  const { data: order } = await supabase
+  const adminClient = createAdminClient();
+  const { data: order } = await adminClient
     .from("orders")
     .select("payment_key, status, amount")
     .eq("id", id)
@@ -69,7 +68,6 @@ export async function POST(
     }
 
     // DB 업데이트
-    const adminClient = createAdminClient();
     const { error: updateError } = await adminClient
       .from("orders")
       .update({ status: "CANCELED" })

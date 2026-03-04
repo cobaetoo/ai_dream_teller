@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdmin } from "@/lib/admin";
 
 export async function GET(request: Request) {
@@ -12,18 +12,13 @@ export async function GET(request: Request) {
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const offset = (page - 1) * limit;
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  // orders 테이블은 dream_id만 가지고 있으므로 dreams를 통해 유저와 조인합니다.
-  const {
-    data: rawOrders,
-    count,
-    error,
-  } = await supabase
-    .from("orders")
-    .select(
-      `
+  let query = supabase.from("orders").select(
+    `
       id,
       amount,
       status,
@@ -32,12 +27,26 @@ export async function GET(request: Request) {
         user_id,
         guest_id,
         expert_type,
+        status,
         profiles ( nickname, id ),
         guests ( phone, id )
       )
     `,
-      { count: "exact" },
-    )
+    { count: "exact" },
+  );
+
+  if (startDate) {
+    query = query.gte("created_at", startDate);
+  }
+  if (endDate) {
+    query = query.lte("created_at", `${endDate}T23:59:59.999Z`);
+  }
+
+  const {
+    data: rawOrders,
+    count,
+    error,
+  } = await query
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 

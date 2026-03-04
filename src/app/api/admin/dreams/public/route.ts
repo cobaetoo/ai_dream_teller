@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdmin } from "@/lib/admin";
 
 export async function GET(request: Request) {
@@ -8,13 +8,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  const { searchParams } = new URL(request.url);
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
+  const supabase = createAdminClient();
 
   // 퍼블릭 피드 전체 조회 쿼리 (관리자용 필터 없는 raw 데이터 조회)
-  const { data: dreams, error } = await supabase
-    .from("dreams")
-    .select(
-      `
+  let query = supabase.from("dreams").select(
+    `
       id,
       content,
       is_public,
@@ -24,11 +26,18 @@ export async function GET(request: Request) {
       profiles ( nickname ),
       guests ( phone )
     `,
-    )
-    // 여기서 PRD상 퍼블릭 피드 관리라고 했으므로 보통 is_public=true인 글만 가져올수도 있으나,
-    // 관리자가 강제로 숨긴(is_public=false) 이력도 볼 수 있도록 필터를 넣지 않거나 is_public인 것만 가져올 수 있습니다.
-    // 기존 mock 코드에서 is_public 상태 토글이 가능했으므로, 우선 전체 dreams를 보여주고 프론트에서 is_public 플래그를 확인합니다.
-    .order("created_at", { ascending: false });
+  );
+
+  if (startDate) {
+    query = query.gte("created_at", startDate);
+  }
+  if (endDate) {
+    query = query.lte("created_at", `${endDate}T23:59:59.999Z`);
+  }
+
+  const { data: dreams, error } = await query.order("created_at", {
+    ascending: false,
+  });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

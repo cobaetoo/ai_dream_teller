@@ -10,16 +10,23 @@ import { Button } from "@/components/ui/button";
 export default function AdminFeedListPage() {
   const [feeds, setFeeds] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/dreams/public")
+    setLoading(true);
+    let url = "/api/admin/dreams/public?";
+    if (startDate) url += `&startDate=${startDate}`;
+    if (endDate) url += `&endDate=${endDate}`;
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setFeeds(data.feeds || []);
         setLoading(false);
       });
-  }, []);
+  }, [startDate, endDate]);
 
   const toggleVisibility = async (id: string, currentVisibility: boolean) => {
     const action = currentVisibility ? "비공개(숨김)" : "공개";
@@ -54,21 +61,39 @@ export default function AdminFeedListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col items-start justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
+      <div className="flex flex-col items-start justify-between space-y-4 lg:flex-row lg:items-center lg:space-y-0">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           공개 피드 관리
         </h1>
-        <div className="relative w-full sm:w-72">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-gray-500" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex items-center gap-2 text-sm bg-white p-2 border border-gray-200 shadow-sm rounded-lg dark:bg-gray-800 dark:border-gray-700">
+            <span className="text-gray-500 font-medium px-2">조회 기간:</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-36 h-9 px-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
+            <span className="text-gray-400">~</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-36 h-9 px-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-200"
+            />
           </div>
-          <Input
-            type="text"
-            className="pl-10"
-            placeholder="꿈 내용 검색..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="relative w-full sm:w-72">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="h-4 w-4 text-gray-500" />
+            </div>
+            <Input
+              type="text"
+              className="pl-10 h-11"
+              placeholder="꿈 내용 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 

@@ -19,7 +19,7 @@ const HeroSection = () => {
 
         <h1 className="max-w-4xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl lg:text-7xl">
           당신의 꿈은 <br className="hidden sm:block" />
-          <span className="bg-gradient-to-r from-purple-600 via-blue-500 to-pink-500 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-purple-600 via-blue-500 to-pink-500 bg-clip-text text-transparent">
             무의식이 보내는 신호
           </span>
           입니다.
@@ -38,7 +38,7 @@ const HeroSection = () => {
           <Link href="/dream-teller">
             <Button
               size="lg"
-              className="h-12 bg-gradient-to-r from-purple-600 to-blue-600 px-8 text-lg font-semibold hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all"
+              className="h-12 bg-linear-to-r from-purple-600 to-blue-600 px-8 text-lg font-semibold hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition-all"
             >
               내 무의식 분석하기
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -54,6 +54,14 @@ const HeroSection = () => {
             </Button>
           </Link>
         </div>
+
+        {/* AI Compliance Info */}
+        <p className="mt-6 text-xs text-slate-400 max-w-xl mx-auto">
+          사용자가 입력한 꿈 내용 및 생성된 해몽 결과는 AI 모델(Gemini)의 학습
+          데이터로 수집되지 않으며 프라이버시가 보호됩니다. AI 생성 결과물에
+          대한 저작권은 제공 즉시 사용자에게 귀속되므로 결제 후 환불이 불가함을
+          안내드립니다.
+        </p>
       </div>
     </section>
   );

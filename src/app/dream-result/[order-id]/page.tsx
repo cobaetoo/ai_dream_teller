@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   Share2,
@@ -11,6 +12,8 @@ import {
   Calendar,
 } from "lucide-react";
 import { DreamCalendar } from "@/components/dream-teller/dream-calendar";
+import { VisibilityToggle } from "@/components/dream-teller/visibility-toggle";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { Metadata } from "next";
@@ -58,12 +61,18 @@ export default async function DreamResultPage({ params }: PageProps) {
   const resolvedParams = await params;
   const orderId = resolvedParams["order-id"];
 
-  const supabase = createAdminClient();
-  const { data: dream, error } = await supabase
+  const supabaseAdmin = createAdminClient();
+  const { data: dream, error } = await supabaseAdmin
     .from("dreams")
     .select("*")
     .eq("id", orderId)
     .single();
+
+  const supabaseServer = await createClient();
+  const {
+    data: { user },
+  } = await supabaseServer.auth.getUser();
+  const isOwner = user?.id && user.id === dream?.user_id;
 
   if (error || !dream) {
     return (
@@ -86,7 +95,7 @@ export default async function DreamResultPage({ params }: PageProps) {
     },
     imageUrl:
       dream.image_url || `https://picsum.photos/seed/${dream.id}/1024/1024`,
-    date: new Date(dream.created_at).toLocaleDateString(),
+    date: format(new Date(dream.created_at), "yyyy년 MM월 dd일"),
   };
 
   return (
@@ -196,6 +205,12 @@ export default async function DreamResultPage({ params }: PageProps) {
 
           {/* Right Column: Calendar & Additional Info */}
           <div className="space-y-6">
+            {isOwner && (
+              <VisibilityToggle
+                dreamId={dream.id}
+                initialIsPublic={dream.is_public}
+              />
+            )}
             <DreamCalendar />
 
             {/* More Dreams CTA Card */}

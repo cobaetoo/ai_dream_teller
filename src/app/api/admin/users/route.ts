@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdmin } from "@/lib/admin";
 
 export async function GET(request: Request) {
@@ -10,14 +10,15 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const typeFilter = searchParams.get("type") || "all";
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   let result: any[] = [];
 
   try {
     if (typeFilter === "all" || typeFilter === "user") {
-      const { data: users, error: userErr } = await supabase.from("profiles")
-        .select(`
+      let q1 = supabase.from("profiles").select(`
           id,
           nickname,
           created_at,
@@ -26,6 +27,10 @@ export async function GET(request: Request) {
             orders ( amount, status )
           )
         `);
+      if (startDate) q1 = q1.gte("created_at", startDate);
+      if (endDate) q1 = q1.lte("created_at", `${endDate}T23:59:59.999Z`);
+
+      const { data: users, error: userErr } = await q1;
 
       if (userErr) throw userErr;
 
@@ -63,8 +68,7 @@ export async function GET(request: Request) {
     }
 
     if (typeFilter === "all" || typeFilter === "guest") {
-      const { data: guests, error: guestErr } = await supabase.from("guests")
-        .select(`
+      let q2 = supabase.from("guests").select(`
           id,
           phone,
           created_at,
@@ -72,6 +76,10 @@ export async function GET(request: Request) {
             orders ( amount, status )
           )
         `);
+      if (startDate) q2 = q2.gte("created_at", startDate);
+      if (endDate) q2 = q2.lte("created_at", `${endDate}T23:59:59.999Z`);
+
+      const { data: guests, error: guestErr } = await q2;
 
       if (guestErr) throw guestErr;
 

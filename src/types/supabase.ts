@@ -7,96 +7,61 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5";
+  };
   public: {
     Tables: {
-      profiles: {
+      dreams: {
         Row: {
-          id: string;
-          nickname: string;
-          role: "USER" | "ADMIN";
+          analysis_result: Json | null;
+          content: string;
           created_at: string;
+          expert_type: string;
+          guest_id: string | null;
+          has_image_gen: boolean;
+          id: string;
+          image_url: string | null;
+          is_public: boolean;
+          status: string;
+          user_id: string | null;
         };
         Insert: {
-          id: string;
-          nickname: string;
-          role?: "USER" | "ADMIN";
+          analysis_result?: Json | null;
+          content: string;
           created_at?: string;
+          expert_type: string;
+          guest_id?: string | null;
+          has_image_gen?: boolean;
+          id?: string;
+          image_url?: string | null;
+          is_public?: boolean;
+          status: string;
+          user_id?: string | null;
         };
         Update: {
-          id?: string;
-          nickname?: string;
-          role?: "USER" | "ADMIN";
+          analysis_result?: Json | null;
+          content?: string;
           created_at?: string;
+          expert_type?: string;
+          guest_id?: string | null;
+          has_image_gen?: boolean;
+          id?: string;
+          image_url?: string | null;
+          is_public?: boolean;
+          status?: string;
+          user_id?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
+            foreignKeyName: "dreams_guest_id_fkey";
+            columns: ["guest_id"];
+            isOneToOne: false;
+            referencedRelation: "guests";
             referencedColumns: ["id"];
-          }
-        ];
-      };
-      guests: {
-        Row: {
-          id: string;
-          phone: string;
-          password_hash: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          phone: string;
-          password_hash: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          phone?: string;
-          password_hash?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      dreams: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          guest_id: string | null;
-          content: string;
-          expert_type: string;
-          status: "PENDING" | "COMPLETED" | "FAILED";
-          analysis_result: Json | null;
-          image_url: string | null;
-          is_public: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          guest_id?: string | null;
-          content: string;
-          expert_type: string;
-          status: "PENDING" | "COMPLETED" | "FAILED";
-          analysis_result?: Json | null;
-          image_url?: string | null;
-          is_public?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          guest_id?: string | null;
-          content?: string;
-          expert_type?: string;
-          status?: "PENDING" | "COMPLETED" | "FAILED";
-          analysis_result?: Json | null;
-          image_url?: string | null;
-          is_public?: boolean;
-          created_at?: string;
-        };
-        Relationships: [
+          },
           {
             foreignKeyName: "dreams_user_id_fkey";
             columns: ["user_id"];
@@ -104,42 +69,56 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "dreams_guest_id_fkey";
-            columns: ["guest_id"];
-            isOneToOne: false;
-            referencedRelation: "guests";
-            referencedColumns: ["id"];
-          }
         ];
+      };
+      guests: {
+        Row: {
+          created_at: string;
+          id: string;
+          password_hash: string;
+          phone: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          password_hash: string;
+          phone: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          password_hash?: string;
+          phone?: string;
+        };
+        Relationships: [];
       };
       orders: {
         Row: {
-          id: string;
-          dream_id: string;
           amount: number;
-          payment_key: string | null;
-          status: "READY" | "DONE" | "CANCELED";
           approved_at: string | null;
           created_at: string;
+          dream_id: string;
+          id: string;
+          payment_key: string | null;
+          status: string;
         };
         Insert: {
-          id: string;
-          dream_id: string;
           amount: number;
-          payment_key?: string | null;
-          status: "READY" | "DONE" | "CANCELED";
           approved_at?: string | null;
           created_at?: string;
+          dream_id: string;
+          id: string;
+          payment_key?: string | null;
+          status: string;
         };
         Update: {
-          id?: string;
-          dream_id?: string;
           amount?: number;
-          payment_key?: string | null;
-          status?: "READY" | "DONE" | "CANCELED";
           approved_at?: string | null;
           created_at?: string;
+          dream_id?: string;
+          id?: string;
+          payment_key?: string | null;
+          status?: string;
         };
         Relationships: [
           {
@@ -148,8 +127,29 @@ export type Database = {
             isOneToOne: true;
             referencedRelation: "dreams";
             referencedColumns: ["id"];
-          }
+          },
         ];
+      };
+      profiles: {
+        Row: {
+          created_at: string;
+          id: string;
+          nickname: string;
+          role: string;
+        };
+        Insert: {
+          created_at?: string;
+          id: string;
+          nickname: string;
+          role?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          nickname?: string;
+          role?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {
@@ -166,3 +166,129 @@ export type Database = {
     };
   };
 };
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  "public"
+>];
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
+      }
+      ? R
+      : never
+    : never;
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U;
+      }
+      ? U
+      : never
+    : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const;

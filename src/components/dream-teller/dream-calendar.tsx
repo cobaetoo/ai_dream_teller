@@ -23,7 +23,13 @@ const DREAM_DATES = [
   new Date(2025, 11, 17),
 ];
 
-export function DreamCalendar({ className }: { className?: string }) {
+export function DreamCalendar({
+  className,
+  dreamDates = [],
+}: {
+  className?: string;
+  dreamDates?: Date[];
+}) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   React.useEffect(() => {
@@ -31,7 +37,7 @@ export function DreamCalendar({ className }: { className?: string }) {
   }, []);
 
   const modifiers = {
-    hasDream: DREAM_DATES,
+    hasDream: dreamDates,
   };
 
   const modifiersStyles = {

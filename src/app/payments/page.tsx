@@ -329,10 +329,16 @@ const PaymentPageContent = () => {
                 ? `${product.price.toLocaleString()}원 결제하기`
                 : "결제 모듈 로딩 중..."}
             </Button>
-            <p className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              결제는 테스트 환경에서 진행됩니다.
-            </p>
+            <div className="mt-4 flex flex-col items-center justify-center gap-1">
+              <p className="text-center text-xs text-slate-400 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                결제는 테스트 환경에서 진행됩니다.
+              </p>
+              <p className="text-center text-[11px] text-slate-400/80 leading-tight max-w-[90%]">
+                결제 후 AI 해몽 컨텐츠 제공이 개시된 이후에는 전자상거래법
+                제17조 2항에 따라 청약 철회(환불)가 불가능합니다.
+              </p>
+            </div>
           </div>
         </div>
       </div>

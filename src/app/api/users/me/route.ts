@@ -66,7 +66,7 @@ export async function PATCH(request: Request) {
     if (!nickname) {
       return NextResponse.json(
         { error: "닉네임을 입력해주세요." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,7 +81,35 @@ export async function PATCH(request: Request) {
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const adminAuthClient = await createAdminClient();
+    const { error } = await adminAuthClient.auth.admin.deleteUser(user.id);
+
+    if (error) throw error;
+
+    // Auth user is deleted, cascading should wipe profiles/dreams if FK allows.
+    // Sign out to clear cookie session as well
+    await supabase.auth.signOut();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
     );
   }
 }

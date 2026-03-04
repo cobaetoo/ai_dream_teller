@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { verifyAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyAdmin } from "@/lib/admin";
 
 export async function POST(
   request: Request,
@@ -15,8 +14,8 @@ export async function POST(
   const { id } = await params;
   if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
-  const supabase = await createClient();
-  const { data: order } = await supabase
+  const adminClient = createAdminClient();
+  const { data: order } = await adminClient
     .from("orders")
     .select("dream_id")
     .eq("id", id)
@@ -30,7 +29,6 @@ export async function POST(
   }
 
   // AI를 재생성하기 위해 dreams 상태를 변경합니다.
-  const adminClient = createAdminClient();
   const { error: resetError } = await adminClient
     .from("dreams")
     .update({ status: "PENDING" })
@@ -56,7 +54,7 @@ export async function POST(
           "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
-        body: JSON.stringify({ dreamId: order.dream_id }),
+        body: JSON.stringify({ dreamId: order.dream_id, force: true }),
       },
     );
 

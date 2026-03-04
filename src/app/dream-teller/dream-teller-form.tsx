@@ -84,6 +84,7 @@ export const DreamTellerForm = () => {
           content: dreamContent,
           expert_type: selectedExpert.toUpperCase(),
           amount: selectedPrice,
+          has_image_gen: selectedOption === "premium",
         }),
       });
 

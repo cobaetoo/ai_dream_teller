@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
+import { usePathname } from "next/navigation";
 
 const SiteFooter = () => {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <footer className="border-t bg-gray-50/50">
       <div className="container flex flex-col items-center gap-4 py-8 md:flex-row md:justify-between px-4">

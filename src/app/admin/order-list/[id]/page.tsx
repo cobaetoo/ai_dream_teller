@@ -10,39 +10,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MoveLeft, RotateCcw, XCircle } from "lucide-react";
+import { MoveLeft, RotateCcw, XCircle, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
+import Image from "next/image";
 
 export default function AdminOrderDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Next.js 15: params가 프로미스일 수 있지만, React 컴포넌트 내에서는 비동기로 풀어주기보단 React.use(params)나
-  // params 자체를 useEffect dependency로 쓰며 데이터를 가져옵니다.
-  // (임시방편으로 params.id 사용 - 만약 에러 시 string type 강제 변환)
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
 
   useEffect(() => {
-    fetch(`/api/admin/orders/${params.id}`)
+    fetch(`/api/admin/orders/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setOrder(data);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleRetry = async () => {
     const ok = confirm(
-      `정말 ${params.id}번 주문에 대한 AI 해몽을 다시 생성하시겠습니까?`,
+      `정말 ${id}번 주문에 대한 AI 해몽을 다시 생성하시겠습니까?`,
     );
     if (!ok) return;
 
     try {
-      const res = await fetch(`/api/admin/orders/${params.id}/retry`, {
+      const res = await fetch(`/api/admin/orders/${id}/retry`, {
         method: "POST",
       });
       const data = await res.json();
@@ -64,14 +64,14 @@ export default function AdminOrderDetailPage({
     if (!confirmCancel) return;
 
     try {
-      const res = await fetch(`/api/admin/orders/${params.id}/cancel`, {
+      const res = await fetch(`/api/admin/orders/${id}/cancel`, {
         method: "POST",
       });
       const data = await res.json();
       if (res.ok) {
         alert("환불이 성공적으로 처리되었습니다.");
         // 상태 갱신을 위해 데이터 재호출
-        const refetch = await fetch(`/api/admin/orders/${params.id}`);
+        const refetch = await fetch(`/api/admin/orders/${id}`);
         const refetchData = await refetch.json();
         setOrder(refetchData);
       } else {
@@ -92,11 +92,36 @@ export default function AdminOrderDetailPage({
 
   const isGuest = !!order.guests;
   const userType = isGuest ? "비회원" : "회원";
-  const expertType = order.dreams?.expert || "선택안됨";
-  const dreamInput = order.dreams?.content || "내용 없음";
-  const aiOutput = order.dreams?.analysis_result
-    ? JSON.stringify(order.dreams.analysis_result, null, 2)
-    : "결과 없음 (또는 상태 대기중)";
+  const dreamData = Array.isArray(order.dreams)
+    ? order.dreams[0]
+    : order.dreams;
+  const expertType = dreamData?.expert_type || "선택안됨";
+
+  // 방어 로직: DB의 content 필드가 없을 수도 있으므로 (입력 텍스트 필드명 예외처리)
+  const dreamInput =
+    dreamData?.content ||
+    dreamData?.prompt ||
+    dreamData?.input_text ||
+    "내용 없음";
+
+  let aiOutput = "결과 없음 (또는 상태 대기중)";
+  if (dreamData?.analysis_result) {
+    if (typeof dreamData.analysis_result === "string") {
+      try {
+        const parsed = JSON.parse(dreamData.analysis_result);
+        aiOutput = parsed.analysis || dreamData.analysis_result;
+      } catch (e) {
+        aiOutput = dreamData.analysis_result;
+      }
+    } else if (typeof dreamData.analysis_result === "object") {
+      aiOutput =
+        dreamData.analysis_result.analysis ||
+        JSON.stringify(dreamData.analysis_result, null, 2);
+    }
+  }
+
+  const imageUrl = dreamData?.image_url;
+  const hasImageGen = dreamData?.has_image_gen;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -105,7 +130,7 @@ export default function AdminOrderDetailPage({
           <MoveLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          주문 상세: {params.id}
+          주문 상세: {id}
         </h1>
       </div>
 
@@ -147,6 +172,12 @@ export default function AdminOrderDetailPage({
                 >
                   {order.status}
                 </span>
+              </span>
+            </div>
+            <div className="grid grid-cols-3 border-b pb-2">
+              <span className="font-medium text-gray-500">이미지 옵션</span>
+              <span className="col-span-2 font-semibold text-purple-600">
+                {hasImageGen ? "이미지 포함됨" : "포함 안됨"}
               </span>
             </div>
             <div className="grid grid-cols-3 pb-2">
@@ -213,12 +244,20 @@ export default function AdminOrderDetailPage({
               {dreamInput}
             </div>
           </div>
+
+          {/* Debug Data Log Only for Admins */}
+          <div className="hidden">
+            <pre className="text-xs text-red-500">
+              {JSON.stringify(dreamData, null, 2)}
+            </pre>
+          </div>
+
           <div className="space-y-2">
             <h3 className="font-semibold text-gray-900 dark:text-white">
               AI 해몽 출력 텍스트 (Output)
             </h3>
             <div className="rounded-md bg-purple-50 p-4 text-sm text-purple-900 dark:bg-purple-900/20 dark:text-purple-100">
-              {order.dreams?.status === "PENDING" ? (
+              {dreamData?.status === "PENDING" ? (
                 <span className="text-gray-500 italic">
                   결과를 기다리는 중 (PENDING)...
                 </span>
@@ -227,6 +266,41 @@ export default function AdminOrderDetailPage({
               )}
             </div>
           </div>
+
+          {hasImageGen && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                <ImageIcon className="mr-2 h-4 w-4" />
+                생성된 이미지
+              </h3>
+              <div className="rounded-md border p-4 flex flex-col items-center space-y-4">
+                {imageUrl ? (
+                  <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-lg shadow-sm bg-gray-100">
+                    <Image
+                      src={imageUrl}
+                      alt="Generated Dream Image"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex aspect-video w-full max-w-md items-center justify-center rounded-lg bg-gray-50 italic text-gray-400 dark:bg-gray-800">
+                    이미지가 아직 생성되지 않았거나 실패했습니다.
+                  </div>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRetry}
+                  className="mt-2"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  이미지만 다시 생성하기 (전체 재생성 호출)
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

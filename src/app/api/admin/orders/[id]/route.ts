@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdmin } from "@/lib/admin";
 
 export async function GET(
@@ -17,7 +17,7 @@ export async function GET(
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // Retrieve complete order details
   const { data: rawOrder, error } = await supabase
@@ -31,6 +31,7 @@ export async function GET(
         content,
         expert_type,
         status,
+        has_image_gen,
         analysis_result,
         image_url,
         is_public,
@@ -50,14 +51,20 @@ export async function GET(
   const d: any = Array.isArray(rawOrder.dreams)
     ? rawOrder.dreams[0]
     : rawOrder.dreams;
+
   const order = {
     ...rawOrder,
-    user_id: d?.user_id,
-    guest_id: d?.guest_id,
+    user_id: d?.user_id || (rawOrder as any).user_id,
+    guest_id: d?.guest_id || (rawOrder as any).guest_id,
     profiles: d?.profiles,
     guests: d?.guests,
-    dreams: [d],
+    dreams: d ? [d] : [], // 빈 배열인 경우 빈 배열 할당
   };
+
+  console.log(
+    "---- ADMIN ORDER DETAIL FETCHED:",
+    JSON.stringify(order, null, 2),
+  );
 
   return NextResponse.json(order);
 }
